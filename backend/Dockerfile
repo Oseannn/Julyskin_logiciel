@@ -1,52 +1,84 @@
+# ============================================
+# BUILD STAGE
+# ============================================
 FROM node:18-alpine AS builder
 
-# Installer OpenSSL 3 et les outils de build
-RUN apk add --no-cache openssl openssl-dev python3 make g++
+# Install build dependencies and OpenSSL 3
+RUN apk add --no-cache \
+    openssl \
+    openssl-dev \
+    python3 \
+    make \
+    g++
 
 WORKDIR /app
 
-# Copier les fichiers de dépendances
-COPY package*.json ./
-COPY tsconfig*.json ./
-COPY nest-cli.json ./
+# Copy dependency files
+COPY package.json package-lock.json ./
+
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci
+
+# Copy configuration files
+COPY tsconfig.json tsconfig.build.json nest-cli.json ./
+
+# Copy Prisma schema
 COPY prisma ./prisma/
 
-# Installer toutes les dépendances (y compris dev pour le build)
-RUN npm install
-
-# Générer le client Prisma
+# Generate Prisma Client
 RUN npx prisma generate
 
-# Copier le code source
+# Copy source code
 COPY src ./src
 
-# Build l'application et vérifier que dist existe
-RUN npm run build && ls -la dist/
+# Build the application
+RUN npm run build
 
-# Stage de production
+# Verify build output exists
+RUN echo "=== Verifying build output ===" && \
+    ls -la dist/ && \
+    test -f dist/main.js && \
+    echo "✓ dist/main.js exists" || \
+    (echo "✗ ERROR: dist/main.js not found!" && exit 1)
+
+# ============================================
+# PRODUCTION STAGE
+# ============================================
 FROM node:18-alpine
 
-# Installer OpenSSL 3
-RUN apk add --no-cache openssl
+# Install runtime dependencies
+RUN apk add --no-cache openssl dumb-init
 
 WORKDIR /app
 
-# Copier package.json et prisma
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/prisma ./prisma/
+# Copy package files
+COPY package.json package-lock.json ./
 
-# Installer uniquement les dépendances de production
-RUN npm ci --only=production
+# Install ONLY production dependencies
+RUN npm ci --only=production && npm cache clean --force
 
-# Copier le code compilé et le client Prisma généré
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-
-# Générer le client Prisma dans l'image de production
+# Copy Prisma schema and generate client
+COPY prisma ./prisma/
 RUN npx prisma generate
 
+# Copy compiled application from builder
+COPY --from=builder /app/dist ./dist
+
+# Verify the main file exists in production image
+RUN test -f dist/main.js || (echo "ERROR: dist/main.js missing in production image!" && exit 1)
+
+# Use non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nestjs -u 1001 && \
+    chown -R nestjs:nodejs /app
+
+USER nestjs
+
+# Expose port
 EXPOSE 4000
 
-# Commande de démarrage
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start command: run migrations then start app
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
