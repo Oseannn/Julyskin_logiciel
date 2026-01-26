@@ -58,4 +58,4 @@ EXPOSE 4000
 ENTRYPOINT ["dumb-init", "--"]
 
 # Run migrations and start app
-CMD ["sh", "-c", "npx prisma migrate resolve --applied 20260126000000_init || true && npx prisma migrate deploy && npx prisma db seed || true && node dist/main.js"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npx prisma db seed || true && node dist/main.js"]
