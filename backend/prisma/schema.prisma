@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  VENDEUSE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  VALIDATED
+  CANCELLED
+}
+
+enum StockMovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role     @default(VENDEUSE)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invoices       Invoice[]
+  refreshTokens  RefreshToken[]
+  stockMovements StockMovement[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  sellingPrice    Decimal  @db.Decimal(10, 2)
+  purchasePrice   Decimal  @db.Decimal(10, 2)
+  stock           Int      @default(0)
+  alertThreshold  Int      @default(5)
+  categoryId      String
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  category       Category        @relation(fields: [categoryId], references: [id])
+  invoiceItems   InvoiceItem[]
+  stockMovements StockMovement[]
+
+  @@map("products")
+}
+
+model Service {
+  id           String   @id @default(uuid())
+  name         String
+  description  String?
+  duration     Int // en minutes
+  price        Decimal  @db.Decimal(10, 2)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  invoiceItems InvoiceItem[]
+
+  @@map("services")
+}
+
+model Client {
+  id        String    @id @default(uuid())
+  firstName String
+  lastName  String
+  phone     String
+  email     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  invoices  Invoice[]
+
+  @@map("clients")
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  invoiceNumber String        @unique
+  clientId      String
+  userId        String
+  subtotal      Decimal       @db.Decimal(10, 2)
+  taxRate       Decimal       @default(20) @db.Decimal(5, 2)
+  taxAmount     Decimal       @db.Decimal(10, 2)
+  total         Decimal       @db.Decimal(10, 2)
+  status        InvoiceStatus @default(DRAFT)
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  validatedAt   DateTime?
+
+  client Client        @relation(fields: [clientId], references: [id])
+  user   User          @relation(fields: [userId], references: [id])
+  items  InvoiceItem[]
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id        String   @id @default(uuid())
+  invoiceId String
+  productId String?
+  serviceId String?
+  name      String // Snapshot du nom au moment de la vente
+  quantity  Int
+  unitPrice Decimal  @db.Decimal(10, 2)
+  total     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+
+  invoice Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id])
+  service Service? @relation(fields: [serviceId], references: [id])
+
+  @@map("invoice_items")
+}
+
+model StockMovement {
+  id        String            @id @default(uuid())
+  productId String
+  type      StockMovementType
+  quantity  Int
+  reason    String?
+  userId    String
+  createdAt DateTime          @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@map("stock_movements")
+}
+
+model Settings {
+  id               String   @id @default(uuid())
+  shopName         String   @default("Jules Skin")
+  shopAddress      String?
+  shopPhone        String?
+  shopEmail        String?
+  defaultTaxRate   Decimal  @default(20) @db.Decimal(5, 2)
+  invoicePrefix    String   @default("JS")
+  nextInvoiceNumber Int     @default(1)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("settings")
+}

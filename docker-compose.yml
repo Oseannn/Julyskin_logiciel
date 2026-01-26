@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: julesskin-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: julesskin
+      POSTGRES_PASSWORD: julesskin_dev_password
+      POSTGRES_DB: julesskin_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - julesskin-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: julesskin-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://julesskin:julesskin_dev_password@postgres:5432/julesskin_db
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_REFRESH_SECRET: your-super-secret-refresh-key-change-in-production
+      JWT_EXPIRATION: 15m
+      JWT_REFRESH_EXPIRATION: 7d
+      NODE_ENV: development
+      PORT: 4000
+      FRONTEND_URL: http://localhost:3000
+      THROTTLE_TTL: 60000
+      THROTTLE_LIMIT: 10
+    ports:
+      - '4000:4000'
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - julesskin-network
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run start:dev"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: julesskin-frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api
+    ports:
+      - '3000:3000'
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - julesskin-network
+
+volumes:
+  postgres_data:
+
+networks:
+  julesskin-network:
+    driver: bridge
