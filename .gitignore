@@ -40,9 +40,9 @@ Thumbs.db
 *.swo
 *~
 
-# Prisma
-backend/prisma/migrations/*
-!backend/prisma/migrations/.gitkeep
+# Prisma - Keep migrations for production deployment
+# backend/prisma/migrations/*
+# !backend/prisma/migrations/.gitkeep
 
 # Docker
 *.pid
