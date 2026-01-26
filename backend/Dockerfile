@@ -13,10 +13,10 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-# Copy dependency files
+# Copy dependency files (lockfile now exists!)
 COPY package.json package-lock.json ./
 
-# Install ALL dependencies (including devDependencies for build)
+# Install ALL dependencies using lockfile (deterministic, faster)
 RUN npm ci
 
 # Copy configuration files
@@ -54,7 +54,7 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install ONLY production dependencies
+# Install ONLY production dependencies using lockfile
 RUN npm ci --only=production && npm cache clean --force
 
 # Copy Prisma schema and generate client
