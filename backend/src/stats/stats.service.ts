@@ -46,7 +46,7 @@ export class StatsService {
 
     const productStats = items.reduce((acc, item) => {
       const id = item.productId;
-      if (!acc[id]) {
+      if (id && !acc[id]) {
         acc[id] = {
           id,
           name: item.name,
@@ -54,10 +54,12 @@ export class StatsService {
           revenue: 0,
         };
       }
-      acc[id].quantity += item.quantity;
-      acc[id].revenue += Number(item.total);
+      if (id) {
+        acc[id].quantity += item.quantity;
+        acc[id].revenue += Number(item.total);
+      }
       return acc;
-    }, {});
+    }, {} as Record<string, any>);
 
     return Object.values(productStats)
       .sort((a: any, b: any) => b.revenue - a.revenue)
@@ -75,7 +77,7 @@ export class StatsService {
 
     const serviceStats = items.reduce((acc, item) => {
       const id = item.serviceId;
-      if (!acc[id]) {
+      if (id && !acc[id]) {
         acc[id] = {
           id,
           name: item.name,
@@ -83,10 +85,12 @@ export class StatsService {
           revenue: 0,
         };
       }
-      acc[id].quantity += item.quantity;
-      acc[id].revenue += Number(item.total);
+      if (id) {
+        acc[id].quantity += item.quantity;
+        acc[id].revenue += Number(item.total);
+      }
       return acc;
-    }, {});
+    }, {} as Record<string, any>);
 
     return Object.values(serviceStats)
       .sort((a: any, b: any) => b.revenue - a.revenue)

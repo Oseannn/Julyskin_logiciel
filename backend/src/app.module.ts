@@ -19,8 +19,8 @@ import { SettingsModule } from './settings/settings.module';
     }),
     ThrottlerModule.forRoot([
       {
-        ttl: parseInt(process.env.THROTTLE_TTL) || 60000,
-        limit: parseInt(process.env.THROTTLE_LIMIT) || 10,
+        ttl: parseInt(process.env.THROTTLE_TTL || '60000', 10),
+        limit: parseInt(process.env.THROTTLE_LIMIT || '10', 10),
       },
     ]),
     PrismaModule,

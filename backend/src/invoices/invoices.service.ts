@@ -100,7 +100,7 @@ export class InvoicesService {
       for (const item of invoice.items) {
         if (item.productId) {
           const product = await tx.product.findUnique({ where: { id: item.productId } });
-          if (product.stock < item.quantity) {
+          if (!product || product.stock < item.quantity) {
             throw new BadRequestException(`Stock insuffisant pour ${item.name}`);
           }
 
@@ -182,8 +182,11 @@ export class InvoicesService {
 
   private async generateInvoiceNumber(): Promise<string> {
     const settings = await this.prisma.settings.findFirst();
-    const prefix = settings?.invoicePrefix || 'JS';
-    const nextNumber = settings?.nextInvoiceNumber || 1;
+    if (!settings) {
+      throw new Error('Settings not found. Please run database seed.');
+    }
+    const prefix = settings.invoicePrefix || 'JS';
+    const nextNumber = settings.nextInvoiceNumber || 1;
 
     await this.prisma.settings.update({
       where: { id: settings.id },
