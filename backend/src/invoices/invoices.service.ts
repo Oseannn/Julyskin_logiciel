@@ -13,7 +13,14 @@ export class InvoicesService {
     const taxRate = createInvoiceDto.taxRate || settings?.defaultTaxRate || new Decimal(20);
 
     let subtotal = new Decimal(0);
-    const itemsData = [];
+    const itemsData: Array<{
+      productId?: string;
+      serviceId?: string;
+      name: string;
+      quantity: number;
+      unitPrice: Decimal;
+      total: Decimal;
+    }> = [];
 
     for (const item of createInvoiceDto.items) {
       let name: string;
