@@ -14,28 +14,31 @@ async function bootstrap() {
     }),
   );
 
-  // CORS - Allow multiple origins
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'https://julyskin-logiciel-18amhog8-oseannn-projects.vercel.app',
-    'https://julyskin-logiciel.vercel.app',
-    process.env.FRONTEND_URL,
-  ].filter(Boolean);
-
+  // CORS - Allow Vercel deployments (all preview and production URLs)
   app.enableCors({
     origin: (origin, callback) => {
       // Allow requests with no origin (mobile apps, Postman, etc.)
       if (!origin) return callback(null, true);
       
-      if (allowedOrigins.some(allowed => origin.startsWith(allowed.replace('https://', 'https://').replace('http://', 'http://')))) {
+      // Allow all Vercel preview and production URLs
+      const allowedPatterns = [
+        /^https:\/\/.*\.vercel\.app$/,  // All Vercel URLs
+        /^http:\/\/localhost:\d+$/,      // Local development
+      ];
+      
+      const isAllowed = allowedPatterns.some(pattern => pattern.test(origin));
+      
+      if (isAllowed || process.env.NODE_ENV === 'development') {
         callback(null, true);
       } else {
-        callback(null, true); // Allow all for now, restrict later
+        console.log('CORS blocked origin:', origin);
+        callback(null, true); // Allow all for now, will restrict later
       }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    exposedHeaders: ['Authorization'],
   });
 
   // Global prefix
