@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  VENDEUSE
+}
+
+enum ServiceBillingType {
+  PAR_MINUTE
+  PAR_HEURE
+  FORFAIT
+}
+
+enum InvoiceLineType {
+  PRODUCT
+  SERVICE
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role     @default(VENDEUSE)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invoices Invoice[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  sellingPrice  Decimal  @db.Decimal(10, 2)
+  purchasePrice Decimal  @db.Decimal(10, 2)
+  stock         Int      @default(0)
+  isActive      Boolean  @default(true)
+  categoryId    String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  category     Category      @relation(fields: [categoryId], references: [id])
+  invoiceLines InvoiceLine[]
+
+  @@map("products")
+}
+
+model Service {
+  id          String             @id @default(uuid())
+  name        String
+  description String?
+  billingType ServiceBillingType
+  unitPrice   Decimal            @db.Decimal(10, 2)
+  minDuration Int?
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  invoiceLines InvoiceLine[]
+
+  @@map("services")
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  phone     String
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invoices Invoice[]
+
+  @@map("clients")
+}
+
+model Invoice {
+  id            String   @id @default(uuid())
+  invoiceNumber String   @unique
+  clientId      String
+  userId        String
+  subtotal      Decimal  @db.Decimal(10, 2)
+  taxRate       Decimal  @default(20) @db.Decimal(5, 2)
+  taxAmount     Decimal  @db.Decimal(10, 2)
+  total         Decimal  @db.Decimal(10, 2)
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  client Client        @relation(fields: [clientId], references: [id])
+  user   User          @relation(fields: [userId], references: [id])
+  lines  InvoiceLine[]
+
+  @@map("invoices")
+}
+
+model InvoiceLine {
+  id        String          @id @default(uuid())
+  invoiceId String
+  type      InvoiceLineType
+  productId String?
+  serviceId String?
+  name      String
+  quantity  Int?
+  duration  Int?
+  unitPrice Decimal         @db.Decimal(10, 2)
+  total     Decimal         @db.Decimal(10, 2)
+  createdAt DateTime        @default(now())
+
+  invoice Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id])
+  service Service? @relation(fields: [serviceId], references: [id])
+
+  @@map("invoice_lines")
+}
+
+model Settings {
+  id                String   @id @default(uuid())
+  shopName          String
+  shopAddress       String?
+  shopPhone         String?
+  shopEmail         String?
+  defaultTaxRate    Decimal  @default(20) @db.Decimal(5, 2)
+  invoicePrefix     String   @default("INV")
+  nextInvoiceNumber Int      @default(1)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("settings")
+}
