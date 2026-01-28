@@ -35,6 +35,11 @@ export default function ProductsPage() {
   }, []);
 
   const openModal = (product?: any) => {
+    if (!product && categories.length === 0) {
+      alert('Veuillez d\'abord créer au moins une catégorie');
+      return;
+    }
+
     if (product) {
       setEditingProduct(product);
       setFormData({
@@ -67,11 +72,26 @@ export default function ProductsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.categoryId) {
+      alert('Veuillez sélectionner une catégorie');
+      return;
+    }
+
+    if (!formData.name.trim()) {
+      alert('Veuillez entrer un nom de produit');
+      return;
+    }
+
     try {
       const data = {
-        ...formData,
+        name: formData.name.trim(),
+        description: formData.description.trim() || undefined,
         sellingPrice: parseFloat(formData.sellingPrice),
         stock: parseInt(formData.stock),
+        categoryId: formData.categoryId,
+        isActive: formData.isActive,
       };
 
       if (editingProduct) {
