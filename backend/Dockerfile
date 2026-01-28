@@ -1,21 +1,26 @@
-FROM node:18-alpine AS builder
+FROM node:18-slim AS builder
 
 WORKDIR /app
+
+# Install OpenSSL
+RUN apt-get update -y && apt-get install -y openssl
 
 COPY package*.json ./
 RUN npm install
 
 COPY . .
 
-# Set a dummy DATABASE_URL for build time
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 
 RUN npx prisma generate
 RUN npm run build
 
-FROM node:18-alpine
+FROM node:18-slim
 
 WORKDIR /app
+
+# Install OpenSSL
+RUN apt-get update -y && apt-get install -y openssl
 
 COPY package*.json ./
 RUN npm install --only=production
