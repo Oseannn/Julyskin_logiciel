@@ -7,6 +7,7 @@ import api from '@/lib/api';
 export default function SettingsPage() {
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     api.get('/settings').then((res) => setSettings(res.data));
@@ -15,9 +16,11 @@ export default function SettingsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setSaved(false);
     try {
       await api.put('/settings', settings);
-      alert('Paramètres mis à jour');
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
     } catch (error) {
       alert('Erreur lors de la mise à jour');
     } finally {
@@ -25,65 +28,135 @@ export default function SettingsPage() {
     }
   };
 
-  if (!settings) return <Layout><div>Chargement...</div></Layout>;
+  if (!settings) {
+    return (
+      <Layout>
+        <div className="text-sm text-gray-500">Chargement...</div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-      <h1 className="text-3xl font-bold mb-6">Paramètres</h1>
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-4">
+      <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium mb-1">Nom de la boutique</label>
-          <input
-            type="text"
-            value={settings.shopName}
-            onChange={(e) => setSettings({ ...settings, shopName: e.target.value })}
-            className="w-full px-4 py-2 border rounded-lg"
-          />
+          <h2 className="text-xl font-semibold text-gray-900">Paramètres</h2>
+          <p className="text-sm text-gray-600 mt-1">Configuration de l'application</p>
         </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Adresse</label>
-          <input
-            type="text"
-            value={settings.shopAddress || ''}
-            onChange={(e) => setSettings({ ...settings, shopAddress: e.target.value })}
-            className="w-full px-4 py-2 border rounded-lg"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Téléphone</label>
-          <input
-            type="text"
-            value={settings.shopPhone || ''}
-            onChange={(e) => setSettings({ ...settings, shopPhone: e.target.value })}
-            className="w-full px-4 py-2 border rounded-lg"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Email</label>
-          <input
-            type="email"
-            value={settings.shopEmail || ''}
-            onChange={(e) => setSettings({ ...settings, shopEmail: e.target.value })}
-            className="w-full px-4 py-2 border rounded-lg"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Taux de TVA par défaut (%)</label>
-          <input
-            type="number"
-            value={settings.defaultTaxRate}
-            onChange={(e) => setSettings({ ...settings, defaultTaxRate: parseFloat(e.target.value) })}
-            className="w-full px-4 py-2 border rounded-lg"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50"
-        >
-          {loading ? 'Enregistrement...' : 'Enregistrer'}
-        </button>
-      </form>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="card p-6">
+            <h3 className="text-base font-semibold text-gray-900 mb-4">Informations de la boutique</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="shopName" className="label">
+                  Nom de la boutique
+                </label>
+                <input
+                  id="shopName"
+                  type="text"
+                  value={settings.shopName}
+                  onChange={(e) => setSettings({ ...settings, shopName: e.target.value })}
+                  className="input"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="shopAddress" className="label">
+                  Adresse
+                </label>
+                <input
+                  id="shopAddress"
+                  type="text"
+                  value={settings.shopAddress || ''}
+                  onChange={(e) => setSettings({ ...settings, shopAddress: e.target.value })}
+                  className="input"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="shopPhone" className="label">
+                    Téléphone
+                  </label>
+                  <input
+                    id="shopPhone"
+                    type="tel"
+                    value={settings.shopPhone || ''}
+                    onChange={(e) => setSettings({ ...settings, shopPhone: e.target.value })}
+                    className="input"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="shopEmail" className="label">
+                    Email
+                  </label>
+                  <input
+                    id="shopEmail"
+                    type="email"
+                    value={settings.shopEmail || ''}
+                    onChange={(e) => setSettings({ ...settings, shopEmail: e.target.value })}
+                    className="input"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="card p-6">
+            <h3 className="text-base font-semibold text-gray-900 mb-4">Facturation</h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="invoicePrefix" className="label">
+                    Préfixe des factures
+                  </label>
+                  <input
+                    id="invoicePrefix"
+                    type="text"
+                    value={settings.invoicePrefix}
+                    onChange={(e) => setSettings({ ...settings, invoicePrefix: e.target.value })}
+                    className="input"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="defaultTaxRate" className="label">
+                    Taux de TVA par défaut (%)
+                  </label>
+                  <input
+                    id="defaultTaxRate"
+                    type="number"
+                    step="0.01"
+                    value={settings.defaultTaxRate}
+                    onChange={(e) => setSettings({ ...settings, defaultTaxRate: parseFloat(e.target.value) })}
+                    className="input"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            {saved && (
+              <span className="text-sm text-green-600 flex items-center">
+                Paramètres enregistrés
+              </span>
+            )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary"
+            >
+              {loading ? 'Enregistrement...' : 'Enregistrer'}
+            </button>
+          </div>
+        </form>
+      </div>
     </Layout>
   );
 }

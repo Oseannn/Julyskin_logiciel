@@ -6,47 +6,79 @@ import api from '@/lib/api';
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/users').then((res) => setUsers(res.data));
+    api.get('/users')
+      .then((res) => setUsers(res.data))
+      .finally(() => setLoading(false));
   }, []);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="text-sm text-gray-500">Chargement...</div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-      <h1 className="text-3xl font-bold mb-6">Utilisateurs</h1>
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rôle</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {users.map((user: any) => (
-              <tr key={user.id}>
-                <td className="px-6 py-4">{user.firstName} {user.lastName}</td>
-                <td className="px-6 py-4">{user.email}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    user.role === 'ADMIN' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
-                  }`}>
-                    {user.role}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    user.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {user.isActive ? 'Actif' : 'Inactif'}
-                  </span>
-                </td>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Utilisateurs</h2>
+            <p className="text-sm text-gray-600 mt-1">{users.length} utilisateurs</p>
+          </div>
+          <button className="btn-primary">
+            Ajouter un utilisateur
+          </button>
+        </div>
+
+        <div className="card overflow-hidden">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Statut</th>
+                <th>Date de création</th>
+                <th></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {users.map((user: any) => (
+                <tr key={user.id} className="hover:bg-gray-50">
+                  <td className="font-medium">
+                    {user.firstName} {user.lastName}
+                  </td>
+                  <td className="text-gray-600">{user.email}</td>
+                  <td>
+                    <span className={user.role === 'ADMIN' ? 'badge-error' : 'badge-info'}>
+                      {user.role === 'ADMIN' ? 'Administrateur' : 'Vendeuse'}
+                    </span>
+                  </td>
+                  <td>
+                    {user.isActive ? (
+                      <span className="badge-success">Actif</span>
+                    ) : (
+                      <span className="badge-error">Inactif</span>
+                    )}
+                  </td>
+                  <td className="text-gray-600">
+                    {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+                  </td>
+                  <td>
+                    <button className="btn-ghost text-xs">
+                      Modifier
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </Layout>
   );

@@ -6,33 +6,75 @@ import api from '@/lib/api';
 
 export default function ClientsPage() {
   const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/clients').then((res) => setClients(res.data));
+    api.get('/clients')
+      .then((res) => setClients(res.data))
+      .finally(() => setLoading(false));
   }, []);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="text-sm text-gray-500">Chargement...</div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-      <h1 className="text-3xl font-bold mb-6">Clients</h1>
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Téléphone</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {clients.map((client: any) => (
-              <tr key={client.id}>
-                <td className="px-6 py-4">{client.firstName} {client.lastName}</td>
-                <td className="px-6 py-4">{client.phone}</td>
-                <td className="px-6 py-4">{client.email || '-'}</td>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Clients</h2>
+            <p className="text-sm text-gray-600 mt-1">{clients.length} clients enregistrés</p>
+          </div>
+          <button className="btn-primary">
+            Ajouter un client
+          </button>
+        </div>
+
+        <div className="card overflow-hidden">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Téléphone</th>
+                <th>Email</th>
+                <th>Date d'inscription</th>
+                <th></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {clients.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center text-gray-500 py-8">
+                    Aucun client
+                  </td>
+                </tr>
+              ) : (
+                clients.map((client: any) => (
+                  <tr key={client.id} className="hover:bg-gray-50">
+                    <td className="font-medium">
+                      {client.firstName} {client.lastName}
+                    </td>
+                    <td className="text-gray-600">{client.phone}</td>
+                    <td className="text-gray-600">{client.email || '-'}</td>
+                    <td className="text-gray-600">
+                      {new Date(client.createdAt).toLocaleDateString('fr-FR')}
+                    </td>
+                    <td>
+                      <button className="btn-ghost text-xs">
+                        Voir détails
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </Layout>
   );
