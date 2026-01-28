@@ -15,7 +15,6 @@ export default function ProductsPage() {
     name: '',
     description: '',
     sellingPrice: '',
-    purchasePrice: '',
     stock: '',
     categoryId: '',
     isActive: true,
@@ -42,7 +41,6 @@ export default function ProductsPage() {
         name: product.name,
         description: product.description || '',
         sellingPrice: product.sellingPrice,
-        purchasePrice: product.purchasePrice,
         stock: product.stock,
         categoryId: product.categoryId,
         isActive: product.isActive,
@@ -54,7 +52,6 @@ export default function ProductsPage() {
         name: '',
         description: '',
         sellingPrice: '',
-        purchasePrice: '',
         stock: '0',
         categoryId: firstCategoryId,
         isActive: true,
@@ -74,7 +71,6 @@ export default function ProductsPage() {
       const data = {
         ...formData,
         sellingPrice: parseFloat(formData.sellingPrice),
-        purchasePrice: parseFloat(formData.purchasePrice),
         stock: parseInt(formData.stock),
       };
 
@@ -119,7 +115,6 @@ export default function ProductsPage() {
                 <th>Nom</th>
                 <th>Catégorie</th>
                 <th>Prix de vente</th>
-                <th>Prix d'achat</th>
                 <th>Stock</th>
                 <th>Statut</th>
                 <th></th>
@@ -128,7 +123,7 @@ export default function ProductsPage() {
             <tbody>
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center text-gray-500 py-8">
+                  <td colSpan={6} className="text-center text-gray-500 py-8">
                     Aucun produit
                   </td>
                 </tr>
@@ -138,7 +133,6 @@ export default function ProductsPage() {
                     <td className="font-medium">{product.name}</td>
                     <td className="text-gray-600">{product.category?.name || '-'}</td>
                     <td>{Number(product.sellingPrice).toFixed(2)} FCFA</td>
-                    <td className="text-gray-600">{Number(product.purchasePrice).toFixed(2)} FCFA</td>
                     <td>
                       <span className={product.stock < 10 ? 'text-red-600 font-medium' : ''}>
                         {product.stock}
@@ -209,32 +203,17 @@ export default function ProductsPage() {
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="sellingPrice" className="label">Prix de vente (FCFA)</label>
-              <input
-                id="sellingPrice"
-                type="number"
-                step="0.01"
-                value={formData.sellingPrice}
-                onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
-                className="input"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="purchasePrice" className="label">Prix d'achat (FCFA)</label>
-              <input
-                id="purchasePrice"
-                type="number"
-                step="0.01"
-                value={formData.purchasePrice}
-                onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
-                className="input"
-                required
-              />
-            </div>
+          <div>
+            <label htmlFor="sellingPrice" className="label">Prix de vente (FCFA)</label>
+            <input
+              id="sellingPrice"
+              type="number"
+              step="0.01"
+              value={formData.sellingPrice}
+              onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
+              className="input"
+              required
+            />
           </div>
 
           <div>
