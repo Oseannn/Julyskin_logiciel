@@ -49,13 +49,14 @@ export default function ProductsPage() {
       });
     } else {
       setEditingProduct(null);
+      const firstCategoryId = categories.length > 0 ? (categories[0] as any).id : '';
       setFormData({
         name: '',
         description: '',
         sellingPrice: '',
         purchasePrice: '',
         stock: '0',
-        categoryId: categories[0]?.id || '',
+        categoryId: firstCategoryId,
         isActive: true,
       });
     }
