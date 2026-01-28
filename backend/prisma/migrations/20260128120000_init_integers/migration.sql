@@ -1,3 +1,19 @@
+-- Drop all existing tables to start fresh
+DROP TABLE IF EXISTS "invoice_lines" CASCADE;
+DROP TABLE IF EXISTS "invoices" CASCADE;
+DROP TABLE IF EXISTS "products" CASCADE;
+DROP TABLE IF EXISTS "services" CASCADE;
+DROP TABLE IF EXISTS "clients" CASCADE;
+DROP TABLE IF EXISTS "categories" CASCADE;
+DROP TABLE IF EXISTS "settings" CASCADE;
+DROP TABLE IF EXISTS "refresh_tokens" CASCADE;
+DROP TABLE IF EXISTS "users" CASCADE;
+
+-- Drop existing types
+DROP TYPE IF EXISTS "Role" CASCADE;
+DROP TYPE IF EXISTS "ServiceBillingType" CASCADE;
+DROP TYPE IF EXISTS "InvoiceLineType" CASCADE;
+
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'VENDEUSE');
 
