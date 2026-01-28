@@ -2,17 +2,84 @@
 
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
+import Modal from '@/components/Modal';
 import api from '@/lib/api';
 
 export default function ServicesPage() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingService, setEditingService] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    billingType: 'FORFAIT',
+    unitPrice: '',
+    minDuration: '',
+    isActive: true,
+  });
 
-  useEffect(() => {
+  const loadData = () => {
     api.get('/services')
       .then((res) => setServices(res.data))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
+
+  const openModal = (service?: any) => {
+    if (service) {
+      setEditingService(service);
+      setFormData({
+        name: service.name,
+        description: service.description || '',
+        billingType: service.billingType,
+        unitPrice: service.unitPrice,
+        minDuration: service.minDuration || '',
+        isActive: service.isActive,
+      });
+    } else {
+      setEditingService(null);
+      setFormData({
+        name: '',
+        description: '',
+        billingType: 'FORFAIT',
+        unitPrice: '',
+        minDuration: '',
+        isActive: true,
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingService(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const data = {
+        ...formData,
+        unitPrice: parseFloat(formData.unitPrice),
+        minDuration: formData.minDuration ? parseInt(formData.minDuration) : null,
+      };
+
+      if (editingService) {
+        await api.put(`/services/${editingService.id}`, data);
+      } else {
+        await api.post('/services', data);
+      }
+      
+      loadData();
+      closeModal();
+    } catch (error) {
+      alert('Erreur lors de l\'enregistrement');
+    }
+  };
 
   const getBillingLabel = (type: string) => {
     switch (type) {
@@ -39,7 +106,7 @@ export default function ServicesPage() {
             <h2 className="text-xl font-semibold text-gray-900">Services</h2>
             <p className="text-sm text-gray-600 mt-1">{services.length} services disponibles</p>
           </div>
-          <button className="btn-primary">
+          <button onClick={() => openModal()} className="btn-primary">
             Ajouter un service
           </button>
         </div>
@@ -84,7 +151,7 @@ export default function ServicesPage() {
                       )}
                     </td>
                     <td>
-                      <button className="btn-ghost text-xs">
+                      <button onClick={() => openModal(service)} className="btn-ghost text-xs">
                         Modifier
                       </button>
                     </td>
@@ -95,6 +162,105 @@ export default function ServicesPage() {
           </table>
         </div>
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingService ? 'Modifier le service' : 'Nouveau service'}
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="name" className="label">Nom du service</label>
+            <input
+              id="name"
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="input"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="description" className="label">Description</label>
+            <textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="input"
+              rows={3}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="billingType" className="label">Type de facturation</label>
+            <select
+              id="billingType"
+              value={formData.billingType}
+              onChange={(e) => setFormData({ ...formData, billingType: e.target.value })}
+              className="input"
+              required
+            >
+              <option value="FORFAIT">Forfait</option>
+              <option value="PAR_MINUTE">Par minute</option>
+              <option value="PAR_HEURE">Par heure</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="unitPrice" className="label">
+                Prix unitaire (€)
+                {formData.billingType === 'PAR_MINUTE' && ' / minute'}
+                {formData.billingType === 'PAR_HEURE' && ' / heure'}
+              </label>
+              <input
+                id="unitPrice"
+                type="number"
+                step="0.01"
+                value={formData.unitPrice}
+                onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
+                className="input"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="minDuration" className="label">Durée minimale (min)</label>
+              <input
+                id="minDuration"
+                type="number"
+                value={formData.minDuration}
+                onChange={(e) => setFormData({ ...formData, minDuration: e.target.value })}
+                className="input"
+                placeholder="Optionnel"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              id="isActive"
+              type="checkbox"
+              checked={formData.isActive}
+              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+              className="h-4 w-4 text-pink-700 focus:ring-pink-700 border-gray-300"
+            />
+            <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
+              Service actif
+            </label>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button type="button" onClick={closeModal} className="btn-secondary">
+              Annuler
+            </button>
+            <button type="submit" className="btn-primary">
+              {editingService ? 'Modifier' : 'Créer'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </Layout>
   );
 }
