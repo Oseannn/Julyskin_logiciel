@@ -74,6 +74,7 @@ export default function InvoicesPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">N°</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Articles</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
@@ -88,6 +89,21 @@ export default function InvoicesPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {new Date(invoice.createdAt).toLocaleDateString('fr-FR')}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm">
+                        {invoice.lines?.slice(0, 2).map((line: any, idx: number) => (
+                          <div key={idx} className="text-gray-600">
+                            {line.name}
+                            {line.duration && ` (${line.duration} min)`}
+                          </div>
+                        ))}
+                        {invoice.lines?.length > 2 && (
+                          <div className="text-gray-400 text-xs">
+                            +{invoice.lines.length - 2} autre(s)
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap font-semibold">
                       {Number(invoice.total).toFixed(2)} €

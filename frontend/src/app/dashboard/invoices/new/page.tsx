@@ -39,19 +39,31 @@ export default function NewInvoicePage() {
     }
   }
 
-  const addItem = (type: 'product' | 'service', id: string) => {
-    const item = type === 'product' 
-      ? products.find(p => p.id === id)
-      : services.find(s => s.id === id)
-    
-    if (!item) return
+  const addProduct = (productId: string) => {
+    const product = products.find(p => p.id === productId)
+    if (!product) return
 
     setItems([...items, {
-      type,
-      id: item.id,
-      name: item.name,
-      price: type === 'product' ? item.sellingPrice : item.price,
+      type: 'product',
+      id: product.id,
+      name: product.name,
+      price: product.sellingPrice,
       quantity: 1,
+    }])
+  }
+
+  const addService = (serviceId: string) => {
+    const service = services.find(s => s.id === serviceId)
+    if (!service) return
+
+    setItems([...items, {
+      type: 'service',
+      id: service.id,
+      name: service.name,
+      billingType: service.billingType,
+      unitPrice: service.unitPrice,
+      minDuration: service.minDuration,
+      duration: service.minDuration || 60, // Default duration
     }])
   }
 
@@ -65,10 +77,41 @@ export default function NewInvoicePage() {
     setItems(newItems)
   }
 
+  const updateDuration = (index: number, duration: number) => {
+    const newItems = [...items]
+    newItems[index].duration = duration
+    setItems(newItems)
+  }
+
+  const calculateItemTotal = (item: any) => {
+    if (item.type === 'product') {
+      return Number(item.price) * item.quantity
+    } else {
+      // Service
+      switch (item.billingType) {
+        case 'PAR_MINUTE':
+          return Number(item.unitPrice) * item.duration
+        case 'PAR_HEURE':
+          return Number(item.unitPrice) * (item.duration / 60)
+        case 'FORFAIT':
+          return Number(item.unitPrice)
+        default:
+          return 0
+      }
+    }
+  }
+
   const calculateTotal = () => {
-    const subtotal = items.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0)
+    const subtotal = items.reduce((sum, item) => sum + calculateItemTotal(item), 0)
     const tax = subtotal * 0.20
     return { subtotal, tax, total: subtotal + tax }
+  }
+
+  const formatDuration = (minutes: number) => {
+    if (minutes < 60) return `${minutes} min`
+    const hours = Math.floor(minutes / 60)
+    const mins = minutes % 60
+    return mins > 0 ? `${hours}h${mins}` : `${hours}h`
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,11 +125,19 @@ export default function NewInvoicePage() {
     try {
       const invoiceData = {
         clientId: selectedClient,
-        items: items.map(item => ({
-          productId: item.type === 'product' ? item.id : undefined,
-          serviceId: item.type === 'service' ? item.id : undefined,
-          quantity: item.quantity,
-        })),
+        items: items.map(item => {
+          if (item.type === 'product') {
+            return {
+              productId: item.id,
+              quantity: item.quantity,
+            }
+          } else {
+            return {
+              serviceId: item.id,
+              duration: item.billingType !== 'FORFAIT' ? item.duration : undefined,
+            }
+          }
+        }),
       }
       
       const response = await api.post('/invoices', invoiceData)
@@ -134,7 +185,7 @@ export default function NewInvoicePage() {
                 <select
                   onChange={(e) => {
                     if (e.target.value) {
-                      addItem('product', e.target.value)
+                      addProduct(e.target.value)
                       e.target.value = ''
                     }
                   }}
@@ -154,7 +205,7 @@ export default function NewInvoicePage() {
                 <select
                   onChange={(e) => {
                     if (e.target.value) {
-                      addItem('service', e.target.value)
+                      addService(e.target.value)
                       e.target.value = ''
                     }
                   }}
@@ -163,7 +214,9 @@ export default function NewInvoicePage() {
                   <option value="">Choisir...</option>
                   {services.map(service => (
                     <option key={service.id} value={service.id}>
-                      {service.name} - {Number(service.price).toFixed(2)} €
+                      {service.name} - {Number(service.unitPrice).toFixed(2)} €
+                      {service.billingType === 'PAR_MINUTE' && '/min'}
+                      {service.billingType === 'PAR_HEURE' && '/h'}
                     </option>
                   ))}
                 </select>
@@ -171,46 +224,88 @@ export default function NewInvoicePage() {
             </div>
 
             {items.length > 0 && (
-              <table className="min-w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2">Article</th>
-                    <th className="text-left py-2">Prix</th>
-                    <th className="text-left py-2">Qté</th>
-                    <th className="text-right py-2">Total</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item, index) => (
-                    <tr key={index} className="border-b">
-                      <td className="py-2">{item.name}</td>
-                      <td className="py-2">{Number(item.price).toFixed(2)} €</td>
-                      <td className="py-2">
-                        <input
-                          type="number"
-                          min="1"
-                          value={item.quantity}
-                          onChange={(e) => updateQuantity(index, parseInt(e.target.value))}
-                          className="input w-20"
-                        />
-                      </td>
-                      <td className="py-2 text-right">
-                        {(Number(item.price) * item.quantity).toFixed(2)} €
-                      </td>
-                      <td className="py-2 text-right">
-                        <button
-                          type="button"
-                          onClick={() => removeItem(index)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          ✕
-                        </button>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2">Article</th>
+                      <th className="text-left py-2">Type</th>
+                      <th className="text-left py-2">Qté/Durée</th>
+                      <th className="text-right py-2">Prix</th>
+                      <th className="text-right py-2">Total</th>
+                      <th></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {items.map((item, index) => (
+                      <tr key={index} className="border-b">
+                        <td className="py-2">{item.name}</td>
+                        <td className="py-2">
+                          {item.type === 'product' ? (
+                            <span className="text-xs bg-gray-100 px-2 py-1 rounded">Produit</span>
+                          ) : (
+                            <span className={`text-xs px-2 py-1 rounded ${
+                              item.billingType === 'PAR_MINUTE' ? 'bg-blue-100 text-blue-800' :
+                              item.billingType === 'PAR_HEURE' ? 'bg-green-100 text-green-800' :
+                              'bg-purple-100 text-purple-800'
+                            }`}>
+                              {item.billingType === 'PAR_MINUTE' ? 'Par min' :
+                               item.billingType === 'PAR_HEURE' ? 'Par h' : 'Forfait'}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2">
+                          {item.type === 'product' ? (
+                            <input
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              onChange={(e) => updateQuantity(index, parseInt(e.target.value))}
+                              className="input w-20"
+                            />
+                          ) : item.billingType !== 'FORFAIT' ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                min={item.minDuration || 1}
+                                value={item.duration}
+                                onChange={(e) => updateDuration(index, parseInt(e.target.value))}
+                                className="input w-20"
+                              />
+                              <span className="text-sm text-gray-500">min</span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-500">-</span>
+                          )}
+                        </td>
+                        <td className="py-2 text-right text-sm">
+                          {item.type === 'product' ? (
+                            `${Number(item.price).toFixed(2)} €`
+                          ) : (
+                            <>
+                              {Number(item.unitPrice).toFixed(2)} €
+                              {item.billingType === 'PAR_MINUTE' && '/min'}
+                              {item.billingType === 'PAR_HEURE' && '/h'}
+                            </>
+                          )}
+                        </td>
+                        <td className="py-2 text-right font-semibold">
+                          {calculateItemTotal(item).toFixed(2)} €
+                        </td>
+                        <td className="py-2 text-right">
+                          <button
+                            type="button"
+                            onClick={() => removeItem(index)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            ✕
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
 

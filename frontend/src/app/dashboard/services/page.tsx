@@ -54,13 +54,27 @@ export default function ServicesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service) => (
               <div key={service.id} className="card hover:shadow-md transition-shadow">
-                <h3 className="text-lg font-semibold text-gray-900">{service.name}</h3>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900">{service.name}</h3>
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                    service.billingType === 'PAR_MINUTE' ? 'bg-blue-100 text-blue-800' :
+                    service.billingType === 'PAR_HEURE' ? 'bg-green-100 text-green-800' :
+                    'bg-purple-100 text-purple-800'
+                  }`}>
+                    {service.billingType === 'PAR_MINUTE' ? 'Par minute' :
+                     service.billingType === 'PAR_HEURE' ? 'Par heure' : 'Forfait'}
+                  </span>
+                </div>
                 <p className="text-gray-600 mt-2 text-sm">{service.description}</p>
                 <div className="mt-4 flex justify-between items-center">
                   <span className="text-2xl font-bold text-primary-600">
-                    {Number(service.price).toFixed(2)} €
+                    {Number(service.unitPrice).toFixed(2)} €
+                    {service.billingType === 'PAR_MINUTE' && <span className="text-sm text-gray-500">/min</span>}
+                    {service.billingType === 'PAR_HEURE' && <span className="text-sm text-gray-500">/h</span>}
                   </span>
-                  <span className="text-sm text-gray-500">{service.duration} min</span>
+                  {service.minDuration && (
+                    <span className="text-sm text-gray-500">Min: {service.minDuration} min</span>
+                  )}
                 </div>
               </div>
             ))}
