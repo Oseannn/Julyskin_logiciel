@@ -1,52 +1,24 @@
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { create } from 'zustand';
 
 interface User {
-  id: string
-  email: string
-  firstName: string
-  lastName: string
-  role: 'ADMIN' | 'VENDEUSE'
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
 }
 
 interface AuthState {
-  user: User | null
-  accessToken: string | null
-  refreshToken: string | null
-  setAuth: (user: User, accessToken: string, refreshToken: string) => void
-  logout: () => void
-  isAdmin: () => boolean
+  user: User | null;
+  setUser: (user: User | null) => void;
+  logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      user: null,
-      accessToken: null,
-      refreshToken: null,
-      setAuth: (user, accessToken, refreshToken) => {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('accessToken', accessToken)
-          localStorage.setItem('refreshToken', refreshToken)
-        }
-        set({ user, accessToken, refreshToken })
-      },
-      logout: () => {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('refreshToken')
-        }
-        set({ user: null, accessToken: null, refreshToken: null })
-      },
-      isAdmin: () => get().user?.role === 'ADMIN',
-    }),
-    {
-      name: 'auth-storage',
-      storage: createJSONStorage(() => (typeof window !== 'undefined' ? localStorage : {
-        getItem: () => null,
-        setItem: () => {},
-        removeItem: () => {},
-      } as any)),
-    }
-  )
-)
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  setUser: (user) => set({ user }),
+  logout: () => {
+    localStorage.clear();
+    set({ user: null });
+  },
+}));

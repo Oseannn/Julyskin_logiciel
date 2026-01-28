@@ -1,14 +1,19 @@
-'use client'
+'use client';
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  const router = useRouter()
+  const router = useRouter();
 
   useEffect(() => {
-    router.push('/login')
-  }, [router])
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      router.push('/dashboard');
+    } else {
+      router.push('/login');
+    }
+  }, [router]);
 
-  return null
+  return <div className="flex items-center justify-center min-h-screen">Chargement...</div>;
 }

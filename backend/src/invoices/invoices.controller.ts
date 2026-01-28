@@ -1,30 +1,29 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
-import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('invoices')
 @UseGuards(JwtAuthGuard)
 export class InvoicesController {
-  constructor(private readonly invoicesService: InvoicesService) {}
-
-  @Post()
-  create(@Body() createInvoiceDto: CreateInvoiceDto, @Request() req) {
-    return this.invoicesService.create(createInvoiceDto, req.user.id);
-  }
-
-  @Post(':id/validate')
-  validate(@Param('id') id: string, @Request() req) {
-    return this.invoicesService.validate(id, req.user.id, req.user.role);
-  }
+  constructor(private invoicesService: InvoicesService) {}
 
   @Get()
-  findAll(@Request() req, @Query() filters: any) {
-    return this.invoicesService.findAll(req.user.id, req.user.role, filters);
+  findAll() {
+    return this.invoicesService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Request() req) {
-    return this.invoicesService.findOne(id, req.user.id, req.user.role);
+  findOne(@Param('id') id: string) {
+    return this.invoicesService.findOne(id);
+  }
+
+  @Post()
+  create(@Body() data: any, @Request() req) {
+    return this.invoicesService.create(data, req.user.userId);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.invoicesService.remove(id);
   }
 }

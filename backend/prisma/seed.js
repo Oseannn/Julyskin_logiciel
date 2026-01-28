@@ -1,209 +1,193 @@
-const { PrismaClient, Role, ServiceBillingType } = require('@prisma/client');
+const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding database v2...');
+  console.log('🌱 Seeding database...');
 
-  // Hash passwords
-  const hashedPassword = await bcrypt.hash('Admin123!', 10);
-  const hashedPasswordVendeuse = await bcrypt.hash('Vendeuse123!', 10);
+  // Users
+  const adminPassword = await bcrypt.hash('Admin123!', 10);
+  const vendeusePassword = await bcrypt.hash('Vendeuse123!', 10);
 
-  // Create Admin
   const admin = await prisma.user.upsert({
     where: { email: 'admin@julesskin.com' },
     update: {},
     create: {
       email: 'admin@julesskin.com',
-      password: hashedPassword,
+      password: adminPassword,
       firstName: 'Admin',
       lastName: 'Jules Skin',
-      role: Role.ADMIN,
-      isActive: true,
+      role: 'ADMIN',
     },
   });
 
-  // Create Vendeuse
   const vendeuse = await prisma.user.upsert({
     where: { email: 'vendeuse@julesskin.com' },
     update: {},
     create: {
       email: 'vendeuse@julesskin.com',
-      password: hashedPasswordVendeuse,
+      password: vendeusePassword,
       firstName: 'Marie',
       lastName: 'Dupont',
-      role: Role.VENDEUSE,
-      isActive: true,
+      role: 'VENDEUSE',
     },
   });
 
-  // Create Categories
-  const categoryVisage = await prisma.category.upsert({
-    where: { name: 'Soins Visage' },
+  console.log('✅ Users created');
+
+  // Categories
+  const skincare = await prisma.category.upsert({
+    where: { name: 'Soins visage' },
     update: {},
     create: {
-      name: 'Soins Visage',
-      description: 'Produits pour le soin du visage',
+      name: 'Soins visage',
+      description: 'Produits pour le visage',
     },
   });
 
-  const categoryCorps = await prisma.category.upsert({
-    where: { name: 'Soins Corps' },
+  const bodycare = await prisma.category.upsert({
+    where: { name: 'Soins corps' },
     update: {},
     create: {
-      name: 'Soins Corps',
-      description: 'Produits pour le soin du corps',
+      name: 'Soins corps',
+      description: 'Produits pour le corps',
     },
   });
 
-  const categoryMaquillage = await prisma.category.upsert({
-    where: { name: 'Maquillage' },
-    update: {},
-    create: {
-      name: 'Maquillage',
-      description: 'Produits de maquillage',
-    },
-  });
+  console.log('✅ Categories created');
 
-  // Create Products
-  await prisma.product.createMany({
-    data: [
-      {
-        name: 'Crème Hydratante Visage',
-        description: 'Crème hydratante pour tous types de peaux',
-        sellingPrice: 35.99,
-        purchasePrice: 18.50,
-        stock: 25,
-        alertThreshold: 5,
-        categoryId: categoryVisage.id,
-      },
-      {
-        name: 'Sérum Anti-Âge',
-        description: 'Sérum concentré anti-rides',
-        sellingPrice: 59.99,
-        purchasePrice: 30.00,
-        stock: 15,
-        alertThreshold: 3,
-        categoryId: categoryVisage.id,
-      },
-      {
-        name: 'Lait Corps Nourrissant',
-        description: 'Lait hydratant pour le corps',
-        sellingPrice: 24.99,
-        purchasePrice: 12.00,
-        stock: 30,
-        alertThreshold: 10,
-        categoryId: categoryCorps.id,
-      },
-      {
-        name: 'Rouge à Lèvres Mat',
-        description: 'Rouge à lèvres longue tenue',
-        sellingPrice: 19.99,
-        purchasePrice: 8.50,
-        stock: 40,
-        alertThreshold: 8,
-        categoryId: categoryMaquillage.id,
-      },
-      {
-        name: 'Fond de Teint',
-        description: 'Fond de teint haute couvrance',
-        sellingPrice: 32.99,
-        purchasePrice: 16.00,
-        stock: 20,
-        alertThreshold: 5,
-        categoryId: categoryMaquillage.id,
-      },
-    ],
-    skipDuplicates: true,
-  });
-
-  // Create Services with different billing types
-  await prisma.service.createMany({
-    data: [
-      {
-        name: 'Massage Relaxant',
-        description: 'Massage corps complet',
-        billingType: ServiceBillingType.PAR_HEURE,
-        unitPrice: 60.00,
-        minDuration: 30,
-      },
-      {
-        name: 'Épilation Sourcils',
-        description: 'Épilation et mise en forme',
-        billingType: ServiceBillingType.PAR_MINUTE,
-        unitPrice: 0.80,
-        minDuration: 10,
-      },
-      {
-        name: 'Soin Visage Complet',
-        description: 'Nettoyage, gommage, masque',
-        billingType: ServiceBillingType.FORFAIT,
-        unitPrice: 65.00,
-        minDuration: null,
-      },
-      {
-        name: 'Manucure',
-        description: 'Soin des mains et pose de vernis',
-        billingType: ServiceBillingType.FORFAIT,
-        unitPrice: 35.00,
-        minDuration: null,
-      },
-      {
-        name: 'Pédicure',
-        description: 'Soin des pieds',
-        billingType: ServiceBillingType.PAR_HEURE,
-        unitPrice: 45.00,
-        minDuration: 45,
-      },
-    ],
-    skipDuplicates: true,
-  });
-
-  // Create Clients
-  await prisma.client.createMany({
-    data: [
-      {
-        firstName: 'Sophie',
-        lastName: 'Martin',
-        phone: '0612345678',
-        email: 'sophie.martin@email.com',
-      },
-      {
-        firstName: 'Julie',
-        lastName: 'Bernard',
-        phone: '0623456789',
-        email: 'julie.bernard@email.com',
-      },
-      {
-        firstName: 'Claire',
-        lastName: 'Dubois',
-        phone: '0634567890',
-      },
-    ],
-    skipDuplicates: true,
-  });
-
-  // Create Settings
-  await prisma.settings.upsert({
+  // Products
+  await prisma.product.upsert({
     where: { id: '00000000-0000-0000-0000-000000000001' },
     update: {},
     create: {
       id: '00000000-0000-0000-0000-000000000001',
+      name: 'Crème hydratante',
+      description: 'Crème visage hydratante',
+      sellingPrice: 35.00,
+      purchasePrice: 15.00,
+      stock: 50,
+      categoryId: skincare.id,
+    },
+  });
+
+  await prisma.product.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000002' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0000-000000000002',
+      name: 'Sérum anti-âge',
+      description: 'Sérum concentré',
+      sellingPrice: 65.00,
+      purchasePrice: 30.00,
+      stock: 30,
+      categoryId: skincare.id,
+    },
+  });
+
+  await prisma.product.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000003' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0000-000000000003',
+      name: 'Lait corporel',
+      description: 'Hydratation corps',
+      sellingPrice: 25.00,
+      purchasePrice: 10.00,
+      stock: 40,
+      categoryId: bodycare.id,
+    },
+  });
+
+  console.log('✅ Products created');
+
+  // Services
+  await prisma.service.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000011' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0000-000000000011',
+      name: 'Massage relaxant',
+      description: 'Massage complet du corps',
+      billingType: 'PAR_HEURE',
+      unitPrice: 60.00,
+      minDuration: 30,
+    },
+  });
+
+  await prisma.service.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000012' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0000-000000000012',
+      name: 'Épilation',
+      description: 'Épilation à la cire',
+      billingType: 'PAR_MINUTE',
+      unitPrice: 0.80,
+      minDuration: 15,
+    },
+  });
+
+  await prisma.service.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000013' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0000-000000000013',
+      name: 'Soin visage complet',
+      description: 'Nettoyage + masque + massage',
+      billingType: 'FORFAIT',
+      unitPrice: 65.00,
+    },
+  });
+
+  console.log('✅ Services created');
+
+  // Clients
+  const client1 = await prisma.client.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000021' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0000-000000000021',
+      firstName: 'Sophie',
+      lastName: 'Martin',
+      phone: '0612345678',
+      email: 'sophie.martin@email.com',
+    },
+  });
+
+  const client2 = await prisma.client.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000022' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0000-000000000022',
+      firstName: 'Julie',
+      lastName: 'Bernard',
+      phone: '0623456789',
+      email: 'julie.bernard@email.com',
+    },
+  });
+
+  console.log('✅ Clients created');
+
+  // Settings
+  await prisma.settings.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000031' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0000-000000000031',
       shopName: 'Jules Skin',
       shopAddress: '123 Rue de la Beauté, 75001 Paris',
-      shopPhone: '01 23 45 67 89',
+      shopPhone: '0145678901',
       shopEmail: 'contact@julesskin.com',
       defaultTaxRate: 20,
-      invoicePrefix: 'JS',
+      invoicePrefix: 'INV',
       nextInvoiceNumber: 1,
     },
   });
 
-  console.log('✅ Database seeded successfully with v2 schema!');
-  console.log('👤 Admin:', admin.email, '/ Admin123!');
-  console.log('👤 Vendeuse:', vendeuse.email, '/ Vendeuse123!');
-  console.log('📋 Services avec facturation: PAR_MINUTE, PAR_HEURE, FORFAIT');
+  console.log('✅ Settings created');
+  console.log('🎉 Seeding completed!');
 }
 
 main()

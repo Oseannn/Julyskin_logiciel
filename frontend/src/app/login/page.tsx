@@ -1,92 +1,75 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuthStore } from '@/store/authStore'
-import api from '@/lib/api'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import api from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 
 export default function LoginPage() {
-  const router = useRouter()
-  const setAuth = useAuthStore((state) => state.setAuth)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const setUser = useAuthStore((state) => state.setUser);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
     try {
-      const response = await api.post('/auth/login', { email, password })
-      const { user, accessToken, refreshToken } = response.data
-      
-      setAuth(user, accessToken, refreshToken)
-      router.push('/dashboard')
+      const { data } = await api.post('/auth/login', { email, password });
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      setUser(data.user);
+      router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Erreur de connexion')
+      setError(err.response?.data?.message || 'Erreur de connexion');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
-      <div className="card max-w-md w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary-600">Jules Skin</h1>
-          <p className="text-gray-600 mt-2">Système de Gestion</p>
-        </div>
-
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-100 to-purple-100">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h1 className="text-3xl font-bold text-center mb-6 text-purple-600">Jules Skin</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
+            <label className="block text-sm font-medium mb-1">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="input"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
               required
             />
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mot de passe
-            </label>
+            <label className="block text-sm font-medium mb-1">Mot de passe</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="input"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
               required
             />
           </div>
-
+          {error && <p className="text-red-500 text-sm">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-primary w-full"
+            className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50"
           >
             {loading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
-
-        <div className="mt-6 text-sm text-gray-600 text-center">
-          <p>Comptes de test :</p>
-          <p className="mt-1">Admin: admin@julesskin.com / Admin123!</p>
+        <div className="mt-4 text-sm text-gray-600 text-center">
+          <p>Admin: admin@julesskin.com / Admin123!</p>
           <p>Vendeuse: vendeuse@julesskin.com / Vendeuse123!</p>
         </div>
       </div>
     </div>
-  )
+  );
 }

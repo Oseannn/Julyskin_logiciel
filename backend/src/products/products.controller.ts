@@ -1,49 +1,34 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { AdjustStockDto } from './dto/adjust-stock.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from '@prisma/client';
 
 @Controller('products')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
-
-  @Post()
-  @Roles(Role.ADMIN)
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
-  }
+  constructor(private productsService: ProductsService) {}
 
   @Get()
-  findAll(@Request() req) {
-    return this.productsService.findAll(req.user.role);
-  }
-
-  @Get('low-stock')
-  @Roles(Role.ADMIN)
-  getLowStock() {
-    return this.productsService.getLowStockProducts();
+  findAll() {
+    return this.productsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Request() req) {
-    return this.productsService.findOne(id, req.user.role);
+  findOne(@Param('id') id: string) {
+    return this.productsService.findOne(id);
   }
 
-  @Patch(':id')
-  @Roles(Role.ADMIN)
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productsService.update(id, updateProductDto);
+  @Post()
+  create(@Body() data: any) {
+    return this.productsService.create(data);
   }
 
-  @Post(':id/adjust-stock')
-  @Roles(Role.ADMIN)
-  adjustStock(@Param('id') id: string, @Body() adjustStockDto: AdjustStockDto, @Request() req) {
-    return this.productsService.adjustStock(id, adjustStockDto.quantity, req.user.id, adjustStockDto.reason);
+  @Put(':id')
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.productsService.update(id, data);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.productsService.remove(id);
   }
 }
