@@ -25,17 +25,6 @@ enum StockMovementType {
   ADJUSTMENT
 }
 
-enum ServiceBillingType {
-  PAR_MINUTE
-  PAR_HEURE
-  FORFAIT
-}
-
-enum InvoiceLineType {
-  PRODUCT
-  SERVICE
-}
-
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -72,58 +61,55 @@ model Category {
   description String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-
-  products Product[]
+  products    Product[]
 
   @@map("categories")
 }
 
 model Product {
-  id             String   @id @default(uuid())
-  name           String
-  description    String?
-  sellingPrice   Decimal  @db.Decimal(10, 2)
-  purchasePrice  Decimal  @db.Decimal(10, 2)
-  stock          Int      @default(0)
-  alertThreshold Int      @default(5)
-  categoryId     String
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  sellingPrice    Decimal  @db.Decimal(10, 2)
+  purchasePrice   Decimal  @db.Decimal(10, 2)
+  stock           Int      @default(0)
+  alertThreshold  Int      @default(5)
+  categoryId      String
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   category       Category        @relation(fields: [categoryId], references: [id])
-  invoiceLines   InvoiceLine[]
+  invoiceItems   InvoiceItem[]
   stockMovements StockMovement[]
 
   @@map("products")
 }
 
 model Service {
-  id              String             @id @default(uuid())
-  name            String
-  description     String?
-  billingType     ServiceBillingType
-  unitPrice       Decimal            @db.Decimal(10, 2)
-  minDuration     Int?
-  isActive        Boolean            @default(true)
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  id           String   @id @default(uuid())
+  name         String
+  description  String?
+  duration     Int // en minutes
+  price        Decimal  @db.Decimal(10, 2)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  invoiceLines InvoiceLine[]
+  invoiceItems InvoiceItem[]
 
   @@map("services")
 }
 
 model Client {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   firstName String
   lastName  String
   phone     String
   email     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  invoices Invoice[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  invoices  Invoice[]
 
   @@map("clients")
 }
@@ -139,35 +125,33 @@ model Invoice {
   total         Decimal       @db.Decimal(10, 2)
   status        InvoiceStatus @default(DRAFT)
   notes         String?
-  validatedAt   DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  validatedAt   DateTime?
 
   client Client        @relation(fields: [clientId], references: [id])
   user   User          @relation(fields: [userId], references: [id])
-  lines  InvoiceLine[]
+  items  InvoiceItem[]
 
   @@map("invoices")
 }
 
-model InvoiceLine {
-  id          String          @id @default(uuid())
-  invoiceId   String
-  type        InvoiceLineType
-  productId   String?
-  serviceId   String?
-  name        String
-  quantity    Int?
-  duration    Int?
-  unitPrice   Decimal         @db.Decimal(10, 2)
-  total       Decimal         @db.Decimal(10, 2)
-  createdAt   DateTime        @default(now())
+model InvoiceItem {
+  id        String   @id @default(uuid())
+  invoiceId String
+  productId String?
+  serviceId String?
+  name      String // Snapshot du nom au moment de la vente
+  quantity  Int
+  unitPrice Decimal  @db.Decimal(10, 2)
+  total     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
 
   invoice Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   product Product? @relation(fields: [productId], references: [id])
   service Service? @relation(fields: [serviceId], references: [id])
 
-  @@map("invoice_lines")
+  @@map("invoice_items")
 }
 
 model StockMovement {
@@ -186,16 +170,16 @@ model StockMovement {
 }
 
 model Settings {
-  id                 String   @id @default(uuid())
-  shopName           String
-  shopAddress        String?
-  shopPhone          String?
-  shopEmail          String?
-  defaultTaxRate     Decimal  @default(20) @db.Decimal(5, 2)
-  invoicePrefix      String   @default("INV")
-  nextInvoiceNumber  Int      @default(1)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id               String   @id @default(uuid())
+  shopName         String   @default("Jules Skin")
+  shopAddress      String?
+  shopPhone        String?
+  shopEmail        String?
+  defaultTaxRate   Decimal  @default(20) @db.Decimal(5, 2)
+  invoicePrefix    String   @default("JS")
+  nextInvoiceNumber Int     @default(1)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@map("settings")
 }

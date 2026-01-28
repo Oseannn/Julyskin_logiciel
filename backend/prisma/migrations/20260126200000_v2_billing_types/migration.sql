@@ -7,6 +7,12 @@ CREATE TYPE "InvoiceStatus" AS ENUM ('DRAFT', 'VALIDATED', 'CANCELLED');
 -- CreateEnum
 CREATE TYPE "StockMovementType" AS ENUM ('IN', 'OUT', 'ADJUSTMENT');
 
+-- CreateEnum
+CREATE TYPE "ServiceBillingType" AS ENUM ('PAR_MINUTE', 'PAR_HEURE', 'FORFAIT');
+
+-- CreateEnum
+CREATE TYPE "InvoiceLineType" AS ENUM ('PRODUCT', 'SERVICE');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
@@ -66,8 +72,9 @@ CREATE TABLE "services" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
-    "duration" INTEGER NOT NULL,
-    "price" DECIMAL(10,2) NOT NULL,
+    "billingType" "ServiceBillingType" NOT NULL,
+    "unitPrice" DECIMAL(10,2) NOT NULL,
+    "minDuration" INTEGER,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -100,26 +107,28 @@ CREATE TABLE "invoices" (
     "total" DECIMAL(10,2) NOT NULL,
     "status" "InvoiceStatus" NOT NULL DEFAULT 'DRAFT',
     "notes" TEXT,
+    "validatedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "validatedAt" TIMESTAMP(3),
 
     CONSTRAINT "invoices_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "invoice_items" (
+CREATE TABLE "invoice_lines" (
     "id" TEXT NOT NULL,
     "invoiceId" TEXT NOT NULL,
+    "type" "InvoiceLineType" NOT NULL,
     "productId" TEXT,
     "serviceId" TEXT,
     "name" TEXT NOT NULL,
-    "quantity" INTEGER NOT NULL,
+    "quantity" INTEGER,
+    "duration" INTEGER,
     "unitPrice" DECIMAL(10,2) NOT NULL,
     "total" DECIMAL(10,2) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "invoice_items_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "invoice_lines_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -138,12 +147,12 @@ CREATE TABLE "stock_movements" (
 -- CreateTable
 CREATE TABLE "settings" (
     "id" TEXT NOT NULL,
-    "shopName" TEXT NOT NULL DEFAULT 'Jules Skin',
+    "shopName" TEXT NOT NULL,
     "shopAddress" TEXT,
     "shopPhone" TEXT,
     "shopEmail" TEXT,
     "defaultTaxRate" DECIMAL(5,2) NOT NULL DEFAULT 20,
-    "invoicePrefix" TEXT NOT NULL DEFAULT 'JS',
+    "invoicePrefix" TEXT NOT NULL DEFAULT 'INV',
     "nextInvoiceNumber" INTEGER NOT NULL DEFAULT 1,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -176,13 +185,13 @@ ALTER TABLE "invoices" ADD CONSTRAINT "invoices_clientId_fkey" FOREIGN KEY ("cli
 ALTER TABLE "invoices" ADD CONSTRAINT "invoices_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "invoice_items" ADD CONSTRAINT "invoice_items_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "invoices"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "invoice_lines" ADD CONSTRAINT "invoice_lines_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "invoices"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "invoice_items" ADD CONSTRAINT "invoice_items_productId_fkey" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "invoice_lines" ADD CONSTRAINT "invoice_lines_productId_fkey" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "invoice_items" ADD CONSTRAINT "invoice_items_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "services"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "invoice_lines" ADD CONSTRAINT "invoice_lines_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "services"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "stock_movements" ADD CONSTRAINT "stock_movements_productId_fkey" FOREIGN KEY ("productId") REFERENCES "products"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -190,13 +199,3 @@ ALTER TABLE "stock_movements" ADD CONSTRAINT "stock_movements_productId_fkey" FO
 -- AddForeignKey
 ALTER TABLE "stock_movements" ADD CONSTRAINT "stock_movements_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
-┌─────────────────────────────────────────────────────────┐
-│  Update available 5.22.0 -> 7.3.0                       │
-│                                                         │
-│  This is a major update - please follow the guide at    │
-│  https://pris.ly/d/major-version-upgrade                │
-│                                                         │
-│  Run the following to update                            │
-│    npm i --save-dev prisma@latest                       │
-│    npm i @prisma/client@latest                          │
-└─────────────────────────────────────────────────────────┘

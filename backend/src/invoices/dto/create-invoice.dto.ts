@@ -1,4 +1,4 @@
-import { IsUUID, IsArray, IsOptional, IsString, IsNumber, ValidateNested, ArrayMinSize } from 'class-validator';
+import { IsUUID, IsArray, IsOptional, IsString, IsNumber, IsInt, ValidateNested, ArrayMinSize, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class InvoiceItemDto {
@@ -10,9 +10,17 @@ class InvoiceItemDto {
   @IsOptional()
   serviceId?: string;
 
-  @IsNumber()
+  @IsInt()
+  @IsOptional()
   @Type(() => Number)
-  quantity: number;
+  @Min(1)
+  quantity?: number;
+
+  @IsInt()
+  @IsOptional()
+  @Type(() => Number)
+  @Min(1)
+  duration?: number;
 }
 
 export class CreateInvoiceDto {

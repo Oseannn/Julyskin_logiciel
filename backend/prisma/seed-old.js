@@ -1,10 +1,10 @@
-const { PrismaClient, Role, ServiceBillingType } = require('@prisma/client');
+const { PrismaClient, Role } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding database v2...');
+  console.log('🌱 Seeding database...');
 
   // Hash passwords
   const hashedPassword = await bcrypt.hash('Admin123!', 10);
@@ -118,43 +118,38 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // Create Services with different billing types
+  // Create Services
   await prisma.service.createMany({
     data: [
       {
-        name: 'Massage Relaxant',
-        description: 'Massage corps complet',
-        billingType: ServiceBillingType.PAR_HEURE,
-        unitPrice: 60.00,
-        minDuration: 30,
+        name: 'Soin Visage Complet',
+        description: 'Nettoyage, gommage, masque et massage',
+        duration: 60,
+        price: 65.00,
       },
       {
         name: 'Épilation Sourcils',
-        description: 'Épilation et mise en forme',
-        billingType: ServiceBillingType.PAR_MINUTE,
-        unitPrice: 0.80,
-        minDuration: 10,
+        description: 'Épilation et mise en forme des sourcils',
+        duration: 15,
+        price: 12.00,
       },
       {
-        name: 'Soin Visage Complet',
-        description: 'Nettoyage, gommage, masque',
-        billingType: ServiceBillingType.FORFAIT,
-        unitPrice: 65.00,
-        minDuration: null,
+        name: 'Massage Relaxant',
+        description: 'Massage corps complet relaxant',
+        duration: 90,
+        price: 85.00,
       },
       {
         name: 'Manucure',
         description: 'Soin des mains et pose de vernis',
-        billingType: ServiceBillingType.FORFAIT,
-        unitPrice: 35.00,
-        minDuration: null,
+        duration: 45,
+        price: 35.00,
       },
       {
         name: 'Pédicure',
-        description: 'Soin des pieds',
-        billingType: ServiceBillingType.PAR_HEURE,
-        unitPrice: 45.00,
-        minDuration: 45,
+        description: 'Soin des pieds et pose de vernis',
+        duration: 60,
+        price: 45.00,
       },
     ],
     skipDuplicates: true,
@@ -200,10 +195,9 @@ async function main() {
     },
   });
 
-  console.log('✅ Database seeded successfully with v2 schema!');
+  console.log('✅ Database seeded successfully!');
   console.log('👤 Admin:', admin.email, '/ Admin123!');
   console.log('👤 Vendeuse:', vendeuse.email, '/ Vendeuse123!');
-  console.log('📋 Services avec facturation: PAR_MINUTE, PAR_HEURE, FORFAIT');
 }
 
 main()
