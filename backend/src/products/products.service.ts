@@ -38,31 +38,34 @@ export class ProductsService {
         throw new BadRequestException('Catégorie non trouvée');
       }
 
-      // Construire l'objet de données - NE JAMAIS inclure purchasePrice
-      const productData: any = {
-        name: data.name,
-        sellingPrice: data.sellingPrice,
-        stock: data.stock,
-        categoryId: data.categoryId,
-        isActive: data.isActive ?? true,
-      };
+      // Utiliser SQL brut pour éviter le problème de validation Prisma
+      const result = await this.prisma.$queryRaw`
+        INSERT INTO products (id, name, description, "sellingPrice", "purchasePrice", stock, "isActive", "categoryId", "createdAt", "updatedAt")
+        VALUES (
+          gen_random_uuid(),
+          ${data.name},
+          ${data.description || null},
+          ${data.sellingPrice}::integer,
+          0,
+          ${data.stock}::integer,
+          ${data.isActive ?? true},
+          ${data.categoryId}::uuid,
+          NOW(),
+          NOW()
+        )
+        RETURNING *
+      `;
 
-      // Ajouter description seulement si définie
-      if (data.description && data.description.trim() !== '') {
-        productData.description = data.description.trim();
+      // Récupérer le produit créé avec sa catégorie
+      const products: any = result;
+      if (products && products.length > 0) {
+        return await this.prisma.product.findUnique({
+          where: { id: products[0].id },
+          include: { category: true },
+        });
       }
 
-      // NE PAS ajouter purchasePrice du tout pour l'instant
-      // if (data.purchasePrice !== undefined && data.purchasePrice !== null) {
-      //   productData.purchasePrice = data.purchasePrice;
-      // }
-
-      console.log('Creating product with data:', JSON.stringify(productData));
-
-      return await this.prisma.product.create({
-        data: productData,
-        include: { category: true },
-      });
+      throw new BadRequestException('Erreur lors de la création du produit');
     } catch (error) {
       console.error('Erreur service création produit:', error);
       throw new BadRequestException(error.message || 'Erreur lors de la création du produit');
