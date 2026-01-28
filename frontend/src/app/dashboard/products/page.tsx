@@ -234,7 +234,7 @@ export default function ProductsPage() {
               type="checkbox"
               checked={formData.isActive}
               onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-              className="h-4 w-4 text-pink-700 focus:ring-pink-700 border-gray-300"
+              className="h-4 w-4 text-[#B38944] focus:ring-[#B38944] border-gray-300"
             />
             <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
               Produit actif

@@ -9,9 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        pink: {
-          700: '#be185d',
-          800: '#9f1239',
+        primary: {
+          DEFAULT: '#B38944',
+          dark: '#967339',
         },
       },
     },

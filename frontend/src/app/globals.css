@@ -4,7 +4,8 @@
 
 @layer base {
   :root {
-    --color-primary: 219 39 119;
+    --color-primary: 179 137 68;
+    --color-primary-dark: 150 115 57;
     --color-gray-50: 249 250 251;
     --color-gray-100: 243 244 246;
     --color-gray-200: 229 231 235;
@@ -34,7 +35,7 @@
   }
   
   .btn-primary {
-    @apply btn bg-pink-700 text-white hover:bg-pink-800 focus:ring-pink-500;
+    @apply btn bg-[#B38944] text-white hover:bg-[#967339] focus:ring-[#B38944];
   }
   
   .btn-secondary {
@@ -47,7 +48,7 @@
   
   /* Form elements */
   .input {
-    @apply block w-full px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:ring-1 focus:ring-pink-700 focus:border-pink-700 disabled:bg-gray-50 disabled:text-gray-500;
+    @apply block w-full px-3 py-2 text-sm border border-gray-300 bg-white focus:outline-none focus:ring-1 focus:ring-[#B38944] focus:border-[#B38944] disabled:bg-gray-50 disabled:text-gray-500;
   }
   
   .label {
