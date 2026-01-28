@@ -82,8 +82,10 @@ export default function ProductsPage() {
       
       loadData();
       closeModal();
-    } catch (error) {
-      alert('Erreur lors de l\'enregistrement');
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Erreur lors de l\'enregistrement';
+      alert(errorMessage);
+      console.error('Erreur création produit:', error.response?.data || error);
     }
   };
 
