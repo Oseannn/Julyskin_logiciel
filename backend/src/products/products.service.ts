@@ -38,16 +38,26 @@ export class ProductsService {
         throw new BadRequestException('Catégorie non trouvée');
       }
 
+      // Construire l'objet de données sans les champs undefined
+      const productData: any = {
+        name: data.name,
+        sellingPrice: data.sellingPrice,
+        stock: data.stock,
+        categoryId: data.categoryId,
+        isActive: data.isActive ?? true,
+      };
+
+      // Ajouter les champs optionnels seulement s'ils sont définis
+      if (data.description !== undefined && data.description !== '') {
+        productData.description = data.description;
+      }
+
+      if (data.purchasePrice !== undefined && data.purchasePrice !== null) {
+        productData.purchasePrice = data.purchasePrice;
+      }
+
       return await this.prisma.product.create({
-        data: {
-          name: data.name,
-          description: data.description,
-          sellingPrice: data.sellingPrice,
-          purchasePrice: data.purchasePrice,
-          stock: data.stock,
-          categoryId: data.categoryId,
-          isActive: data.isActive ?? true,
-        },
+        data: productData,
         include: { category: true },
       });
     } catch (error) {

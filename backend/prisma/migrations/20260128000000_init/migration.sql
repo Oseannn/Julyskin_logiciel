@@ -50,7 +50,7 @@ CREATE TABLE "products" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "sellingPrice" DECIMAL(10,2) NOT NULL,
-    "purchasePrice" DECIMAL(10,2) NOT NULL,
+    "purchasePrice" DECIMAL(10,2),
     "stock" INTEGER NOT NULL DEFAULT 0,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "categoryId" TEXT NOT NULL,
