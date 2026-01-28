@@ -34,4 +34,4 @@ ENV NODE_ENV=production
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "npx prisma migrate reset --force --skip-generate && node prisma/seed.js && node dist/main"]
+CMD ["sh", "-c", "npx prisma db push --force-reset --accept-data-loss && npx prisma generate && node prisma/seed.js && node dist/main"]
