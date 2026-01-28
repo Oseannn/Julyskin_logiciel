@@ -32,7 +32,7 @@ export default function DashboardPage() {
           <div className="card p-6">
             <p className="text-sm text-gray-600 mb-1">CA du mois</p>
             <p className="text-3xl font-semibold text-gray-900">
-              {stats.revenueMonth.toLocaleString('fr-FR')} €
+              {stats.revenueMonth.toLocaleString('fr-FR')} FCFA
             </p>
           </div>
 

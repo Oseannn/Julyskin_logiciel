@@ -48,7 +48,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div className="h-16 flex items-center px-6 border-b border-gray-200">
-          <h1 className="text-lg font-semibold text-gray-900">Jules Skin</h1>
+          <h1 className="text-lg font-semibold text-gray-900">Julyskin</h1>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
@@ -96,7 +96,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <header className="h-16 bg-white border-b border-gray-200 flex items-center px-8">
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-gray-900">
-              {navItems.find(item => item.href === pathname)?.label || 'Jules Skin'}
+              {navItems.find(item => item.href === pathname)?.label || 'Julyskin'}
             </h2>
           </div>
         </header>

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Jules Skin',
+  title: 'Julyskin',
   description: 'Système de gestion',
 }
 

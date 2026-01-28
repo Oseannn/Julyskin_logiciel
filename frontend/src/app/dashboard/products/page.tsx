@@ -137,8 +137,8 @@ export default function ProductsPage() {
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="font-medium">{product.name}</td>
                     <td className="text-gray-600">{product.category?.name || '-'}</td>
-                    <td>{Number(product.sellingPrice).toFixed(2)} €</td>
-                    <td className="text-gray-600">{Number(product.purchasePrice).toFixed(2)} €</td>
+                    <td>{Number(product.sellingPrice).toFixed(2)} FCFA</td>
+                    <td className="text-gray-600">{Number(product.purchasePrice).toFixed(2)} FCFA</td>
                     <td>
                       <span className={product.stock < 10 ? 'text-red-600 font-medium' : ''}>
                         {product.stock}
@@ -211,7 +211,7 @@ export default function ProductsPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="sellingPrice" className="label">Prix de vente (€)</label>
+              <label htmlFor="sellingPrice" className="label">Prix de vente (FCFA)</label>
               <input
                 id="sellingPrice"
                 type="number"
@@ -224,7 +224,7 @@ export default function ProductsPage() {
             </div>
 
             <div>
-              <label htmlFor="purchasePrice" className="label">Prix d'achat (€)</label>
+              <label htmlFor="purchasePrice" className="label">Prix d'achat (FCFA)</label>
               <input
                 id="purchasePrice"
                 type="number"

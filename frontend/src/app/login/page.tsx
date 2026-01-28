@@ -35,7 +35,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Jules Skin</h1>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Julyskin</h1>
           <p className="text-sm text-gray-600">Système de gestion</p>
         </div>
 
@@ -104,7 +104,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-4 text-center text-xs text-gray-500">
-          © 2026 Jules Skin. Tous droits réservés.
+          © 2026 Julyskin. Tous droits réservés.
         </p>
       </div>
     </div>

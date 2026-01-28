@@ -139,7 +139,7 @@ export default function ServicesPage() {
                         {getBillingLabel(service.billingType)}
                       </span>
                     </td>
-                    <td>{Number(service.unitPrice).toFixed(2)} €</td>
+                    <td>{Number(service.unitPrice).toFixed(2)} FCFA</td>
                     <td className="text-gray-600">
                       {service.minDuration ? `${service.minDuration} min` : '-'}
                     </td>
@@ -210,7 +210,7 @@ export default function ServicesPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="unitPrice" className="label">
-                Prix unitaire (€)
+                Prix unitaire (FCFA)
                 {formData.billingType === 'PAR_MINUTE' && ' / minute'}
                 {formData.billingType === 'PAR_HEURE' && ' / heure'}
               </label>
