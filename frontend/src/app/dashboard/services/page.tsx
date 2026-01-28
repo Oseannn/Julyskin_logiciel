@@ -64,7 +64,7 @@ export default function ServicesPage() {
     try {
       const data = {
         ...formData,
-        unitPrice: parseFloat(formData.unitPrice),
+        unitPrice: parseInt(formData.unitPrice),
         minDuration: formData.minDuration ? parseInt(formData.minDuration) : null,
       };
 
@@ -139,7 +139,7 @@ export default function ServicesPage() {
                         {getBillingLabel(service.billingType)}
                       </span>
                     </td>
-                    <td>{Number(service.unitPrice).toFixed(2)} FCFA</td>
+                    <td>{service.unitPrice} FCFA</td>
                     <td className="text-gray-600">
                       {service.minDuration ? `${service.minDuration} min` : '-'}
                     </td>
@@ -217,7 +217,7 @@ export default function ServicesPage() {
               <input
                 id="unitPrice"
                 type="number"
-                step="0.01"
+                step="1"
                 value={formData.unitPrice}
                 onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
                 className="input"

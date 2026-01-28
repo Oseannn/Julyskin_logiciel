@@ -88,7 +88,7 @@ export default function ProductsPage() {
       const data = {
         name: formData.name.trim(),
         description: formData.description.trim() || undefined,
-        sellingPrice: parseFloat(formData.sellingPrice),
+        sellingPrice: parseInt(formData.sellingPrice),
         stock: parseInt(formData.stock),
         categoryId: formData.categoryId,
         isActive: formData.isActive,
@@ -154,7 +154,7 @@ export default function ProductsPage() {
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="font-medium">{product.name}</td>
                     <td className="text-gray-600">{product.category?.name || '-'}</td>
-                    <td>{Number(product.sellingPrice).toFixed(2)} FCFA</td>
+                    <td>{product.sellingPrice} FCFA</td>
                     <td>
                       <span className={product.stock < 10 ? 'text-red-600 font-medium' : ''}>
                         {product.stock}
@@ -230,7 +230,7 @@ export default function ProductsPage() {
             <input
               id="sellingPrice"
               type="number"
-              step="0.01"
+              step="1"
               value={formData.sellingPrice}
               onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
               className="input"

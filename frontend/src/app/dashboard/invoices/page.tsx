@@ -72,12 +72,12 @@ export default function InvoicesPage() {
                     <td className="text-gray-600">
                       {new Date(invoice.createdAt).toLocaleDateString('fr-FR')}
                     </td>
-                    <td>{Number(invoice.subtotal).toFixed(2)} FCFA</td>
+                    <td>{invoice.subtotal} FCFA</td>
                     <td className="text-gray-600">
-                      {Number(invoice.taxAmount).toFixed(2)} FCFA
+                      {invoice.taxAmount} FCFA
                     </td>
                     <td className="font-medium">
-                      {Number(invoice.total).toFixed(2)} FCFA
+                      {invoice.total} FCFA
                     </td>
                     <td>
                       <button className="btn-ghost text-xs">

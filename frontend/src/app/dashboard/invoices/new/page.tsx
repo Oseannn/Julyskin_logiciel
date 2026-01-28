@@ -152,7 +152,7 @@ export default function NewInvoicePage() {
                   <option value="">Choisir un produit</option>
                   {products.map((product: any) => (
                     <option key={product.id} value={product.id}>
-                      {product.name} - {Number(product.sellingPrice).toFixed(2)} FCFA
+                      {product.name} - {product.sellingPrice} FCFA
                     </option>
                   ))}
                 </select>
@@ -240,10 +240,10 @@ export default function NewInvoicePage() {
                             )}
                           </td>
                           <td className="px-4 py-3 text-sm text-right">
-                            {Number(item.unitPrice).toFixed(2)} FCFA
+                            {item.unitPrice} FCFA
                           </td>
                           <td className="px-4 py-3 text-sm text-right font-medium">
-                            {itemTotal.toFixed(2)} FCFA
+                            {itemTotal} FCFA
                           </td>
                           <td className="px-4 py-3 text-right">
                             <button
@@ -275,15 +275,15 @@ export default function NewInvoicePage() {
               <div className="max-w-sm ml-auto space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Sous-total HT</span>
-                  <span className="font-medium">{subtotal.toFixed(2)} FCFA</span>
+                  <span className="font-medium">{subtotal} FCFA</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">TVA ({taxRate}%)</span>
-                  <span className="font-medium">{taxAmount.toFixed(2)} FCFA</span>
+                  <span className="font-medium">{taxAmount} FCFA</span>
                 </div>
                 <div className="flex justify-between text-lg font-semibold pt-2 border-t border-gray-200">
                   <span>Total TTC</span>
-                  <span>{total.toFixed(2)} FCFA</span>
+                  <span>{total} FCFA</span>
                 </div>
               </div>
             </div>
