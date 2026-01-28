@@ -66,7 +66,7 @@ CREATE TABLE "products" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "sellingPrice" INTEGER NOT NULL,
-    "purchasePrice" INTEGER,
+    "purchasePrice" INTEGER DEFAULT 0,
     "stock" INTEGER NOT NULL DEFAULT 0,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "categoryId" TEXT NOT NULL,

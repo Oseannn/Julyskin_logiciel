@@ -38,7 +38,7 @@ export class ProductsService {
         throw new BadRequestException('Catégorie non trouvée');
       }
 
-      // Construire l'objet de données sans les champs undefined
+      // Construire l'objet de données - NE JAMAIS inclure purchasePrice
       const productData: any = {
         name: data.name,
         sellingPrice: data.sellingPrice,
@@ -47,14 +47,17 @@ export class ProductsService {
         isActive: data.isActive ?? true,
       };
 
-      // Ajouter les champs optionnels seulement s'ils sont définis
-      if (data.description !== undefined && data.description !== '') {
-        productData.description = data.description;
+      // Ajouter description seulement si définie
+      if (data.description && data.description.trim() !== '') {
+        productData.description = data.description.trim();
       }
 
-      if (data.purchasePrice !== undefined && data.purchasePrice !== null) {
-        productData.purchasePrice = data.purchasePrice;
-      }
+      // NE PAS ajouter purchasePrice du tout pour l'instant
+      // if (data.purchasePrice !== undefined && data.purchasePrice !== null) {
+      //   productData.purchasePrice = data.purchasePrice;
+      // }
+
+      console.log('Creating product with data:', JSON.stringify(productData));
 
       return await this.prisma.product.create({
         data: productData,
