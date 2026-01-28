@@ -119,64 +119,66 @@ export default function ProductsPage() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Produits</h2>
             <p className="text-sm text-gray-600 mt-1">{products.length} produits au total</p>
           </div>
-          <button onClick={() => openModal()} className="btn-primary">
+          <button onClick={() => openModal()} className="btn-primary w-full sm:w-auto">
             Ajouter un produit
           </button>
         </div>
 
         <div className="card overflow-hidden">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Catégorie</th>
-                <th>Prix de vente</th>
-                <th>Stock</th>
-                <th>Statut</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.length === 0 ? (
+          <div className="table-wrapper">
+            <table className="table">
+              <thead>
                 <tr>
-                  <td colSpan={6} className="text-center text-gray-500 py-8">
-                    Aucun produit
-                  </td>
+                  <th>Nom</th>
+                  <th>Catégorie</th>
+                  <th>Prix de vente</th>
+                  <th>Stock</th>
+                  <th>Statut</th>
+                  <th></th>
                 </tr>
-              ) : (
-                products.map((product: any) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="font-medium">{product.name}</td>
-                    <td className="text-gray-600">{product.category?.name || '-'}</td>
-                    <td>{product.sellingPrice} FCFA</td>
-                    <td>
-                      <span className={product.stock < 10 ? 'text-red-600 font-medium' : ''}>
-                        {product.stock}
-                      </span>
-                    </td>
-                    <td>
-                      {product.isActive ? (
-                        <span className="badge-success">Actif</span>
-                      ) : (
-                        <span className="badge-error">Inactif</span>
-                      )}
-                    </td>
-                    <td>
-                      <button onClick={() => openModal(product)} className="btn-ghost text-xs">
-                        Modifier
-                      </button>
+              </thead>
+              <tbody>
+                {products.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center text-gray-500 py-8">
+                      Aucun produit
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  products.map((product: any) => (
+                    <tr key={product.id} className="hover:bg-gray-50">
+                      <td className="font-medium">{product.name}</td>
+                      <td className="text-gray-600">{product.category?.name || '-'}</td>
+                      <td className="whitespace-nowrap">{product.sellingPrice} FCFA</td>
+                      <td>
+                        <span className={product.stock < 10 ? 'text-red-600 font-medium' : ''}>
+                          {product.stock}
+                        </span>
+                      </td>
+                      <td>
+                        {product.isActive ? (
+                          <span className="badge-success">Actif</span>
+                        ) : (
+                          <span className="badge-error">Inactif</span>
+                        )}
+                      </td>
+                      <td>
+                        <button onClick={() => openModal(product)} className="btn-ghost text-xs">
+                          Modifier
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
