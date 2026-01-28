@@ -36,7 +36,7 @@ export class StatsService {
   }
 
   private async getTopProducts(where: any) {
-    const items = await this.prisma.invoiceItem.findMany({
+    const lines = await this.prisma.invoiceLine.findMany({
       where: {
         invoice: where,
         productId: { not: null },
@@ -44,19 +44,19 @@ export class StatsService {
       include: { product: true },
     });
 
-    const productStats = items.reduce((acc, item) => {
-      const id = item.productId;
+    const productStats = lines.reduce((acc, line) => {
+      const id = line.productId;
       if (id && !acc[id]) {
         acc[id] = {
           id,
-          name: item.name,
+          name: line.name,
           quantity: 0,
           revenue: 0,
         };
       }
       if (id) {
-        acc[id].quantity += item.quantity;
-        acc[id].revenue += Number(item.total);
+        acc[id].quantity += line.quantity || 0;
+        acc[id].revenue += Number(line.total);
       }
       return acc;
     }, {} as Record<string, any>);
@@ -67,7 +67,7 @@ export class StatsService {
   }
 
   private async getTopServices(where: any) {
-    const items = await this.prisma.invoiceItem.findMany({
+    const lines = await this.prisma.invoiceLine.findMany({
       where: {
         invoice: where,
         serviceId: { not: null },
@@ -75,19 +75,19 @@ export class StatsService {
       include: { service: true },
     });
 
-    const serviceStats = items.reduce((acc, item) => {
-      const id = item.serviceId;
+    const serviceStats = lines.reduce((acc, line) => {
+      const id = line.serviceId;
       if (id && !acc[id]) {
         acc[id] = {
           id,
-          name: item.name,
+          name: line.name,
           quantity: 0,
           revenue: 0,
         };
       }
       if (id) {
-        acc[id].quantity += item.quantity;
-        acc[id].revenue += Number(item.total);
+        acc[id].quantity += 1; // Count number of times service was used
+        acc[id].revenue += Number(line.total);
       }
       return acc;
     }, {} as Record<string, any>);
