@@ -48,7 +48,7 @@ export default function NewInvoicePage() {
   }, []);
 
   const addProduct = (productId: string) => {
-    const product = products.find((p: any) => p.id === productId);
+    const product: any = products.find((p: any) => p.id === productId);
     if (!product) return;
 
     setItems([...items, {
@@ -61,7 +61,7 @@ export default function NewInvoicePage() {
   };
 
   const addService = (serviceId: string) => {
-    const service = services.find((s: any) => s.id === serviceId);
+    const service: any = services.find((s: any) => s.id === serviceId);
     if (!service) return;
 
     setItems([...items, {
