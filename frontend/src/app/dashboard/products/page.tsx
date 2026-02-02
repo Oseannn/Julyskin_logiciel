@@ -23,7 +23,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Package } from 'lucide-react';
+import { Plus, Pencil, Package, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function ProductsPage() {
@@ -129,6 +129,19 @@ export default function ProductsPage() {
     }
   };
 
+  const handleDelete = async (product: any) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer le produit "${product.name}" ?`)) {
+      return;
+    }
+
+    try {
+      await api.delete(`/products/${product.id}`);
+      loadData();
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Erreur lors de la suppression');
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -190,13 +203,22 @@ export default function ProductsPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openModal(product)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openModal(product)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(product)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

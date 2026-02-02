@@ -23,7 +23,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Briefcase } from 'lucide-react';
+import { Plus, Pencil, Briefcase, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function ServicesPage() {
@@ -94,6 +94,19 @@ export default function ServicesPage() {
       setIsModalOpen(false);
     } catch (error: any) {
       alert(error.response?.data?.message || 'Erreur lors de l\'enregistrement');
+    }
+  };
+
+  const handleDelete = async (service: any) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer le service "${service.name}" ?`)) {
+      return;
+    }
+
+    try {
+      await api.delete(`/services/${service.id}`);
+      loadData();
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Erreur lors de la suppression');
     }
   };
 
@@ -169,13 +182,22 @@ export default function ServicesPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openModal(service)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openModal(service)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(service)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Pencil, Users as UsersIcon } from 'lucide-react';
+import { Plus, Pencil, Users as UsersIcon, Trash2 } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function ClientsPage() {
@@ -89,6 +89,19 @@ export default function ClientsPage() {
     }
   };
 
+  const handleDelete = async (client: any) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer le client "${client.firstName} ${client.lastName}" ?`)) {
+      return;
+    }
+
+    try {
+      await api.delete(`/clients/${client.id}`);
+      loadData();
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Erreur lors de la suppression');
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -138,13 +151,22 @@ export default function ClientsPage() {
                     <TableCell>{client.phone}</TableCell>
                     <TableCell className="text-muted-foreground">{client.email || '-'}</TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openModal(client)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openModal(client)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(client)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
