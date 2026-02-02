@@ -2,7 +2,27 @@
 
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
-import Modal from '@/components/Modal';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Plus, Pencil, Users as UsersIcon } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function ClientsPage() {
@@ -18,9 +38,9 @@ export default function ClientsPage() {
   });
 
   const loadData = () => {
-    api.get('/clients')
-      .then((res) => setClients(res.data))
-      .finally(() => setLoading(false));
+    api.get('/clients').then((res) => {
+      setClients(res.data);
+    }).finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -48,17 +68,12 @@ export default function ClientsPage() {
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingClient(null);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const data = {
         ...formData,
-        email: formData.email || null,
+        email: formData.email || undefined,
       };
 
       if (editingClient) {
@@ -68,16 +83,16 @@ export default function ClientsPage() {
       }
       
       loadData();
-      closeModal();
-    } catch (error) {
-      alert('Erreur lors de l\'enregistrement');
+      setIsModalOpen(false);
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Erreur lors de l\'enregistrement');
     }
   };
 
   if (loading) {
     return (
       <Layout>
-        <div className="text-sm text-gray-500">Chargement...</div>
+        <div className="text-sm text-muted-foreground">Chargement...</div>
       </Layout>
     );
   }
@@ -85,125 +100,125 @@ export default function ClientsPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Clients</h2>
-            <p className="text-sm text-gray-600 mt-1">{clients.length} clients enregistrés</p>
+            <h2 className="text-3xl font-bold tracking-tight">Clients</h2>
+            <p className="text-muted-foreground mt-1">{clients.length} clients au total</p>
           </div>
-          <button onClick={() => openModal()} className="btn-primary">
+          <Button onClick={() => openModal()} className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" />
             Ajouter un client
-          </button>
+          </Button>
         </div>
 
-        <div className="card overflow-hidden">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Téléphone</th>
-                <th>Email</th>
-                <th>Date d'inscription</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nom</TableHead>
+                <TableHead>Prénom</TableHead>
+                <TableHead>Téléphone</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {clients.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center text-gray-500 py-8">
-                    Aucun client
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    <UsersIcon className="mx-auto h-12 w-12 text-muted-foreground/50 mb-2" />
+                    <p className="text-muted-foreground">Aucun client</p>
+                  </TableCell>
+                </TableRow>
               ) : (
                 clients.map((client: any) => (
-                  <tr key={client.id} className="hover:bg-gray-50">
-                    <td className="font-medium">
-                      {client.firstName} {client.lastName}
-                    </td>
-                    <td className="text-gray-600">{client.phone}</td>
-                    <td className="text-gray-600">{client.email || '-'}</td>
-                    <td className="text-gray-600">
-                      {new Date(client.createdAt).toLocaleDateString('fr-FR')}
-                    </td>
-                    <td>
-                      <button onClick={() => openModal(client)} className="btn-ghost text-xs">
-                        Modifier
-                      </button>
-                    </td>
-                  </tr>
+                  <TableRow key={client.id}>
+                    <TableCell className="font-medium">{client.lastName}</TableCell>
+                    <TableCell>{client.firstName}</TableCell>
+                    <TableCell>{client.phone}</TableCell>
+                    <TableCell className="text-muted-foreground">{client.email || '-'}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openModal(client)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </Card>
       </div>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title={editingClient ? 'Modifier le client' : 'Nouveau client'}
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="firstName" className="label">Prénom</label>
-              <input
-                id="firstName"
-                type="text"
-                value={formData.firstName}
-                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                className="input"
-                required
-              />
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{editingClient ? 'Modifier le client' : 'Nouveau client'}</DialogTitle>
+            <DialogDescription>
+              {editingClient ? 'Modifiez les informations du client' : 'Ajoutez un nouveau client'}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="firstName">Prénom</Label>
+                  <Input
+                    id="firstName"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="lastName">Nom</Label>
+                  <Input
+                    id="lastName"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="phone">Téléphone</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email (optionnel)</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                />
+              </div>
             </div>
 
-            <div>
-              <label htmlFor="lastName" className="label">Nom</label>
-              <input
-                id="lastName"
-                type="text"
-                value={formData.lastName}
-                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                className="input"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="phone" className="label">Téléphone</label>
-            <input
-              id="phone"
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="input"
-              placeholder="06 12 34 56 78"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="email" className="label">Email (optionnel)</label>
-            <input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="input"
-              placeholder="client@exemple.com"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <button type="button" onClick={closeModal} className="btn-secondary">
-              Annuler
-            </button>
-            <button type="submit" className="btn-primary">
-              {editingClient ? 'Modifier' : 'Créer'}
-            </button>
-          </div>
-        </form>
-      </Modal>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                Annuler
+              </Button>
+              <Button type="submit">
+                {editingClient ? 'Modifier' : 'Créer'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

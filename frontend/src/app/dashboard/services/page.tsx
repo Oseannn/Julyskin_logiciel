@@ -2,7 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
-import Modal from '@/components/Modal';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Pencil, Briefcase } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function ServicesPage() {
@@ -20,9 +41,9 @@ export default function ServicesPage() {
   });
 
   const loadData = () => {
-    api.get('/services')
-      .then((res) => setServices(res.data))
-      .finally(() => setLoading(false));
+    api.get('/services').then((res) => {
+      setServices(res.data);
+    }).finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -54,11 +75,6 @@ export default function ServicesPage() {
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingService(null);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -75,25 +91,25 @@ export default function ServicesPage() {
       }
       
       loadData();
-      closeModal();
-    } catch (error) {
-      alert('Erreur lors de l\'enregistrement');
+      setIsModalOpen(false);
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Erreur lors de l\'enregistrement');
     }
   };
 
-  const getBillingLabel = (type: string) => {
-    switch (type) {
-      case 'PAR_MINUTE': return 'Par minute';
-      case 'PAR_HEURE': return 'Par heure';
-      case 'FORFAIT': return 'Forfait';
-      default: return type;
-    }
+  const getBillingTypeLabel = (type: string) => {
+    const labels: any = {
+      PAR_MINUTE: 'Par minute',
+      PAR_HEURE: 'Par heure',
+      FORFAIT: 'Forfait',
+    };
+    return labels[type] || type;
   };
 
   if (loading) {
     return (
       <Layout>
-        <div className="text-sm text-gray-500">Chargement...</div>
+        <div className="text-sm text-muted-foreground">Chargement...</div>
       </Layout>
     );
   }
@@ -101,166 +117,167 @@ export default function ServicesPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Services</h2>
-            <p className="text-sm text-gray-600 mt-1">{services.length} services disponibles</p>
+            <h2 className="text-3xl font-bold tracking-tight">Services</h2>
+            <p className="text-muted-foreground mt-1">{services.length} services au total</p>
           </div>
-          <button onClick={() => openModal()} className="btn-primary">
+          <Button onClick={() => openModal()} className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" />
             Ajouter un service
-          </button>
+          </Button>
         </div>
 
-        <div className="card overflow-hidden">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Type de facturation</th>
-                <th>Prix unitaire</th>
-                <th>Durée min.</th>
-                <th>Statut</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nom</TableHead>
+                <TableHead>Type de facturation</TableHead>
+                <TableHead>Prix unitaire</TableHead>
+                <TableHead>Durée min.</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {services.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-center text-gray-500 py-8">
-                    Aucun service
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <Briefcase className="mx-auto h-12 w-12 text-muted-foreground/50 mb-2" />
+                    <p className="text-muted-foreground">Aucun service</p>
+                  </TableCell>
+                </TableRow>
               ) : (
                 services.map((service: any) => (
-                  <tr key={service.id} className="hover:bg-gray-50">
-                    <td className="font-medium">{service.name}</td>
-                    <td>
-                      <span className="badge-info">
-                        {getBillingLabel(service.billingType)}
-                      </span>
-                    </td>
-                    <td>{service.unitPrice} FCFA</td>
-                    <td className="text-gray-600">
+                  <TableRow key={service.id}>
+                    <TableCell className="font-medium">{service.name}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {getBillingTypeLabel(service.billingType)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{service.unitPrice} FCFA</TableCell>
+                    <TableCell className="text-muted-foreground">
                       {service.minDuration ? `${service.minDuration} min` : '-'}
-                    </td>
-                    <td>
+                    </TableCell>
+                    <TableCell>
                       {service.isActive ? (
-                        <span className="badge-success">Actif</span>
+                        <Badge variant="success">Actif</Badge>
                       ) : (
-                        <span className="badge-error">Inactif</span>
+                        <Badge variant="destructive">Inactif</Badge>
                       )}
-                    </td>
-                    <td>
-                      <button onClick={() => openModal(service)} className="btn-ghost text-xs">
-                        Modifier
-                      </button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openModal(service)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </Card>
       </div>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title={editingService ? 'Modifier le service' : 'Nouveau service'}
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="label">Nom du service</label>
-            <input
-              id="name"
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="input"
-              required
-            />
-          </div>
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{editingService ? 'Modifier le service' : 'Nouveau service'}</DialogTitle>
+            <DialogDescription>
+              {editingService ? 'Modifiez les informations du service' : 'Ajoutez un nouveau service'}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Nom du service</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
 
-          <div>
-            <label htmlFor="description" className="label">Description</label>
-            <textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="input"
-              rows={3}
-            />
-          </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Input
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                />
+              </div>
 
-          <div>
-            <label htmlFor="billingType" className="label">Type de facturation</label>
-            <select
-              id="billingType"
-              value={formData.billingType}
-              onChange={(e) => setFormData({ ...formData, billingType: e.target.value })}
-              className="input"
-              required
-            >
-              <option value="FORFAIT">Forfait</option>
-              <option value="PAR_MINUTE">Par minute</option>
-              <option value="PAR_HEURE">Par heure</option>
-            </select>
-          </div>
+              <div className="grid gap-2">
+                <Label htmlFor="billingType">Type de facturation</Label>
+                <select
+                  id="billingType"
+                  value={formData.billingType}
+                  onChange={(e) => setFormData({ ...formData, billingType: e.target.value })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  required
+                >
+                  <option value="FORFAIT">Forfait</option>
+                  <option value="PAR_HEURE">Par heure</option>
+                  <option value="PAR_MINUTE">Par minute</option>
+                </select>
+              </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="unitPrice" className="label">
-                Prix unitaire (FCFA)
-                {formData.billingType === 'PAR_MINUTE' && ' / minute'}
-                {formData.billingType === 'PAR_HEURE' && ' / heure'}
-              </label>
-              <input
-                id="unitPrice"
-                type="number"
-                step="1"
-                value={formData.unitPrice}
-                onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
-                className="input"
-                required
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="unitPrice">Prix unitaire (FCFA)</Label>
+                  <Input
+                    id="unitPrice"
+                    type="number"
+                    step="1"
+                    value={formData.unitPrice}
+                    onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="minDuration">Durée min. (min)</Label>
+                  <Input
+                    id="minDuration"
+                    type="number"
+                    value={formData.minDuration}
+                    onChange={(e) => setFormData({ ...formData, minDuration: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  id="isActive"
+                  type="checkbox"
+                  checked={formData.isActive}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="isActive" className="font-normal">
+                  Service actif
+                </Label>
+              </div>
             </div>
 
-            <div>
-              <label htmlFor="minDuration" className="label">Durée minimale (min)</label>
-              <input
-                id="minDuration"
-                type="number"
-                value={formData.minDuration}
-                onChange={(e) => setFormData({ ...formData, minDuration: e.target.value })}
-                className="input"
-                placeholder="Optionnel"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center">
-            <input
-              id="isActive"
-              type="checkbox"
-              checked={formData.isActive}
-              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-              className="h-4 w-4 text-[#B38944] focus:ring-[#B38944] border-gray-300"
-            />
-            <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
-              Service actif
-            </label>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <button type="button" onClick={closeModal} className="btn-secondary">
-              Annuler
-            </button>
-            <button type="submit" className="btn-primary">
-              {editingService ? 'Modifier' : 'Créer'}
-            </button>
-          </div>
-        </form>
-      </Modal>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                Annuler
+              </Button>
+              <Button type="submit">
+                {editingService ? 'Modifier' : 'Créer'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

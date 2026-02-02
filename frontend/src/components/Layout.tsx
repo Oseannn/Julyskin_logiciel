@@ -5,6 +5,20 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
+import { Button } from '@/components/ui/button';
+import { 
+  LayoutDashboard, 
+  FileText, 
+  Package, 
+  Briefcase, 
+  Users, 
+  UserCog, 
+  Settings, 
+  LogOut,
+  Menu,
+  X
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -35,120 +49,101 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   const navItems = [
-    { href: '/dashboard', label: 'Tableau de bord' },
-    { href: '/dashboard/invoices', label: 'Factures' },
-    { href: '/dashboard/products', label: 'Produits' },
-    { href: '/dashboard/services', label: 'Services' },
-    { href: '/dashboard/clients', label: 'Clients' },
-    ...(user?.role === 'ADMIN' ? [{ href: '/dashboard/users', label: 'Utilisateurs' }] : []),
-    { href: '/dashboard/settings', label: 'Paramètres' },
+    { href: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
+    { href: '/dashboard/invoices', label: 'Factures', icon: FileText },
+    { href: '/dashboard/products', label: 'Produits', icon: Package },
+    { href: '/dashboard/services', label: 'Services', icon: Briefcase },
+    { href: '/dashboard/clients', label: 'Clients', icon: Users },
+    ...(user?.role === 'ADMIN' ? [{ href: '/dashboard/users', label: 'Utilisateurs', icon: UserCog }] : []),
+    { href: '/dashboard/settings', label: 'Paramètres', icon: Settings },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="min-h-screen bg-background">
       {/* Mobile Header */}
-      <div className="md:hidden h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4">
-        <h1 className="text-lg font-semibold text-gray-900">Julyskin</h1>
-        <button
+      <div className="md:hidden sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background px-4">
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 text-gray-600 hover:text-gray-900"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {isMobileMenuOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
-        </button>
+          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
+        <h1 className="text-lg font-semibold">Julyskin</h1>
       </div>
 
-      {/* Sidebar - Desktop & Mobile */}
-      <aside className={`
-        ${isMobileMenuOpen ? 'block' : 'hidden'} md:block
-        fixed md:relative inset-0 z-50 md:z-auto
-        w-full md:w-64 bg-white border-r border-gray-200 flex flex-col
-        md:h-screen
-      `}>
-        {/* Desktop Header */}
-        <div className="hidden md:flex h-16 items-center px-6 border-b border-gray-200">
-          <h1 className="text-lg font-semibold text-gray-900">Julyskin</h1>
-        </div>
-
-        {/* Mobile Close Button */}
-        <div className="md:hidden h-16 flex items-center justify-between px-4 border-b border-gray-200">
-          <h1 className="text-lg font-semibold text-gray-900">Menu</h1>
-          <button
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-gray-600 hover:text-gray-900"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`block px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-gray-100 text-gray-900'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 border-t border-gray-200">
-          {user && (
-            <div className="mb-3">
-              <p className="text-sm font-medium text-gray-900">
-                {user.firstName} {user.lastName}
-              </p>
-              <p className="text-xs text-gray-500">{user.email}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                {user.role === 'ADMIN' ? 'Administrateur' : 'Vendeuse'}
-              </p>
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className={cn(
+          "fixed inset-y-0 left-0 z-50 w-64 transform border-r bg-card transition-transform duration-200 ease-in-out md:relative md:translate-x-0",
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        )}>
+          <div className="flex h-full flex-col">
+            {/* Logo */}
+            <div className="hidden md:flex h-16 items-center border-b px-6">
+              <h1 className="text-xl font-bold text-primary">Julyskin</h1>
             </div>
-          )}
-          <button
-            onClick={handleLogout}
-            className="btn-ghost w-full text-sm"
-          >
-            Déconnexion
-          </button>
-        </div>
-      </aside>
 
-      {/* Overlay for mobile menu */}
-      {isMobileMenuOpen && (
-        <div
-          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
+            {/* Navigation */}
+            <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-h-screen md:min-h-0">
-        <header className="hidden md:flex h-16 bg-white border-b border-gray-200 items-center px-4 md:px-8">
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {navItems.find(item => item.href === pathname)?.label || 'Julyskin'}
-            </h2>
+            {/* User Info */}
+            <div className="border-t p-4">
+              {user && (
+                <div className="mb-3 rounded-lg bg-muted p-3">
+                  <p className="text-sm font-medium">
+                    {user.firstName} {user.lastName}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                  <p className="mt-1 text-xs font-medium text-primary">
+                    {user.role === 'ADMIN' ? 'Administrateur' : 'Vendeuse'}
+                  </p>
+                </div>
+              )}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleLogout}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Déconnexion
+              </Button>
+            </div>
           </div>
-        </header>
+        </aside>
 
+        {/* Overlay for mobile */}
+        {isMobileMenuOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/50 md:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Main Content */}
         <main className="flex-1 overflow-auto">
-          <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-8">
+          <div className="container mx-auto p-4 md:p-8">
             {children}
           </div>
         </main>
