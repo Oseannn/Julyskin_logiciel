@@ -108,8 +108,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               })}
             </nav>
 
-            {/* User Info */}
-            <div className="border-t p-4">
+            {/* Spacer to push user info to bottom */}
+            <div className="flex-shrink-0" />
+
+            {/* User Info - Fixed at bottom */}
+            <div className="border-t p-4 mt-auto">
               {user && (
                 <div className="mb-3 rounded-lg bg-muted p-3">
                   <p className="text-sm font-medium">
