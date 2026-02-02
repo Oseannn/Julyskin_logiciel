@@ -34,7 +34,6 @@ export default function ClientsPage() {
     firstName: '',
     lastName: '',
     phone: '',
-    email: '',
   });
 
   const loadData = () => {
@@ -54,7 +53,6 @@ export default function ClientsPage() {
         firstName: client.firstName,
         lastName: client.lastName,
         phone: client.phone,
-        email: client.email || '',
       });
     } else {
       setEditingClient(null);
@@ -62,7 +60,6 @@ export default function ClientsPage() {
         firstName: '',
         lastName: '',
         phone: '',
-        email: '',
       });
     }
     setIsModalOpen(true);
@@ -73,7 +70,6 @@ export default function ClientsPage() {
     try {
       const data = {
         ...formData,
-        email: formData.email || undefined,
       };
 
       if (editingClient) {
@@ -131,14 +127,13 @@ export default function ClientsPage() {
                 <TableHead>Nom</TableHead>
                 <TableHead>Prénom</TableHead>
                 <TableHead>Téléphone</TableHead>
-                <TableHead>Email</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {clients.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                  <TableCell colSpan={4} className="text-center py-8">
                     <UsersIcon className="mx-auto h-12 w-12 text-muted-foreground/50 mb-2" />
                     <p className="text-muted-foreground">Aucun client</p>
                   </TableCell>
@@ -149,7 +144,6 @@ export default function ClientsPage() {
                     <TableCell className="font-medium">{client.lastName}</TableCell>
                     <TableCell>{client.firstName}</TableCell>
                     <TableCell>{client.phone}</TableCell>
-                    <TableCell className="text-muted-foreground">{client.email || '-'}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
@@ -216,16 +210,6 @@ export default function ClientsPage() {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   required
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email (optionnel)</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
               </div>
             </div>
