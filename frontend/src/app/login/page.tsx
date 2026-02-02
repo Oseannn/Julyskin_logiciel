@@ -2,16 +2,21 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
+import api from '@/lib/api';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { LogIn } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const setUser = useAuthStore((state) => state.setUser);
+  const { setUser } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,94 +24,82 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { data } = await api.post('/auth/login', { email, password });
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      setUser(data.user);
+      const response = await api.post('/auth/login', { email, password });
+      const { accessToken, refreshToken, user } = response.data;
+
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('user', JSON.stringify(user));
+      setUser(user);
+
       router.push('/dashboard');
     } catch (err: any) {
-      setError('Email ou mot de passe incorrect');
+      setError(err.response?.data?.message || 'Identifiants incorrects');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Julyskin</h1>
-          <p className="text-sm text-gray-600">Système de gestion</p>
-        </div>
-
-        <div className="bg-white border border-gray-200 p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="email" className="label">
-                Adresse email
-              </label>
-              <input
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center">
+              <LogIn className="h-6 w-6 text-primary-foreground" />
+            </div>
+          </div>
+          <CardTitle className="text-2xl font-bold">Julyskin</CardTitle>
+          <CardDescription>
+            Connectez-vous à votre compte pour continuer
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
                 id="email"
                 type="email"
+                placeholder="admin@julesskin.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input"
-                placeholder="nom@exemple.com"
                 required
-                autoComplete="email"
+                disabled={loading}
               />
             </div>
 
-            <div>
-              <label htmlFor="password" className="label">
-                Mot de passe
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="password">Mot de passe</Label>
+              <Input
                 id="password"
                 type="password"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input"
-                placeholder="••••••••"
                 required
-                autoComplete="current-password"
+                disabled={loading}
               />
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
+              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                 {error}
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full"
-            >
-              {loading ? 'Connexion en cours...' : 'Se connecter'}
-            </button>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Connexion...' : 'Se connecter'}
+            </Button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-xs text-gray-500 mb-3">Comptes de test</p>
-            <div className="space-y-2 text-xs text-gray-600">
-              <div className="flex justify-between">
-                <span className="font-medium">Admin:</span>
-                <span>admin@julesskin.com / Admin123!</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Vendeuse:</span>
-                <span>vendeuse@julesskin.com / Vendeuse123!</span>
-              </div>
-            </div>
+          <div className="mt-6 text-center text-sm text-muted-foreground">
+            <p>Comptes de test :</p>
+            <p className="mt-1">Admin : admin@julesskin.com / Admin123!</p>
+            <p>Vendeuse : vendeuse@julesskin.com / Vendeuse123!</p>
           </div>
-        </div>
-
-        <p className="mt-4 text-center text-xs text-gray-500">
-          © 2026 Julyskin. Tous droits réservés.
-        </p>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
