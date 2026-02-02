@@ -2,36 +2,75 @@
 
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Save, Settings as SettingsIcon } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [settingsId, setSettingsId] = useState('');
+  const [formData, setFormData] = useState({
+    shopName: '',
+    shopAddress: '',
+    shopPhone: '',
+    shopEmail: '',
+    defaultTaxRate: '20',
+    invoicePrefix: 'INV',
+    nextInvoiceNumber: '1',
+  });
 
   useEffect(() => {
-    api.get('/settings').then((res) => setSettings(res.data));
+    api.get('/settings').then((res) => {
+      if (res.data.length > 0) {
+        const settings = res.data[0];
+        setSettingsId(settings.id);
+        setFormData({
+          shopName: settings.shopName,
+          shopAddress: settings.shopAddress || '',
+          shopPhone: settings.shopPhone || '',
+          shopEmail: settings.shopEmail || '',
+          defaultTaxRate: settings.defaultTaxRate.toString(),
+          invoicePrefix: settings.invoicePrefix,
+          nextInvoiceNumber: settings.nextInvoiceNumber.toString(),
+        });
+      }
+    }).finally(() => setLoading(false));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setSaved(false);
+    setSaving(true);
+
     try {
-      await api.put('/settings', settings);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } catch (error) {
-      alert('Erreur lors de la mise à jour');
+      const data = {
+        ...formData,
+        defaultTaxRate: parseInt(formData.defaultTaxRate),
+        nextInvoiceNumber: parseInt(formData.nextInvoiceNumber),
+      };
+
+      if (settingsId) {
+        await api.put(`/settings/${settingsId}`, data);
+      } else {
+        const res = await api.post('/settings', data);
+        setSettingsId(res.data.id);
+      }
+
+      alert('Paramètres enregistrés avec succès');
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Erreur lors de l\'enregistrement');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  if (!settings) {
+  if (loading) {
     return (
       <Layout>
-        <div className="text-sm text-gray-500">Chargement...</div>
+        <div className="text-sm text-muted-foreground">Chargement...</div>
       </Layout>
     );
   }
@@ -40,120 +79,114 @@ export default function SettingsPage() {
     <Layout>
       <div className="space-y-6">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Paramètres</h2>
-          <p className="text-sm text-gray-600 mt-1">Configuration de l'application</p>
+          <h2 className="text-3xl font-bold tracking-tight">Paramètres</h2>
+          <p className="text-muted-foreground mt-1">Gérez les paramètres de votre boutique</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="card p-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-4">Informations de la boutique</h3>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="shopName" className="label">
-                  Nom de la boutique
-                </label>
-                <input
-                  id="shopName"
-                  type="text"
-                  value={settings.shopName}
-                  onChange={(e) => setSettings({ ...settings, shopName: e.target.value })}
-                  className="input"
-                  required
-                />
-              </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Informations de la boutique</CardTitle>
+              <CardDescription>
+                Ces informations apparaîtront sur vos factures
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="shopName">Nom de la boutique</Label>
+                  <Input
+                    id="shopName"
+                    value={formData.shopName}
+                    onChange={(e) => setFormData({ ...formData, shopName: e.target.value })}
+                    required
+                  />
+                </div>
 
-              <div>
-                <label htmlFor="shopAddress" className="label">
-                  Adresse
-                </label>
-                <input
-                  id="shopAddress"
-                  type="text"
-                  value={settings.shopAddress || ''}
-                  onChange={(e) => setSettings({ ...settings, shopAddress: e.target.value })}
-                  className="input"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="shopPhone" className="label">
-                    Téléphone
-                  </label>
-                  <input
+                <div className="grid gap-2">
+                  <Label htmlFor="shopPhone">Téléphone</Label>
+                  <Input
                     id="shopPhone"
                     type="tel"
-                    value={settings.shopPhone || ''}
-                    onChange={(e) => setSettings({ ...settings, shopPhone: e.target.value })}
-                    className="input"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="shopEmail" className="label">
-                    Email
-                  </label>
-                  <input
-                    id="shopEmail"
-                    type="email"
-                    value={settings.shopEmail || ''}
-                    onChange={(e) => setSettings({ ...settings, shopEmail: e.target.value })}
-                    className="input"
+                    value={formData.shopPhone}
+                    onChange={(e) => setFormData({ ...formData, shopPhone: e.target.value })}
                   />
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="card p-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-4">Facturation</h3>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="invoicePrefix" className="label">
-                    Préfixe des factures
-                  </label>
-                  <input
-                    id="invoicePrefix"
-                    type="text"
-                    value={settings.invoicePrefix}
-                    onChange={(e) => setSettings({ ...settings, invoicePrefix: e.target.value })}
-                    className="input"
-                    required
-                  />
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="shopAddress">Adresse</Label>
+                <Input
+                  id="shopAddress"
+                  value={formData.shopAddress}
+                  onChange={(e) => setFormData({ ...formData, shopAddress: e.target.value })}
+                />
+              </div>
 
-                <div>
-                  <label htmlFor="defaultTaxRate" className="label">
-                    Taux de TVA par défaut (%)
-                  </label>
-                  <input
+              <div className="grid gap-2">
+                <Label htmlFor="shopEmail">Email</Label>
+                <Input
+                  id="shopEmail"
+                  type="email"
+                  value={formData.shopEmail}
+                  onChange={(e) => setFormData({ ...formData, shopEmail: e.target.value })}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Paramètres de facturation</CardTitle>
+              <CardDescription>
+                Configurez les paramètres par défaut pour vos factures
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="defaultTaxRate">Taux de TVA par défaut (%)</Label>
+                  <Input
                     id="defaultTaxRate"
                     type="number"
-                    step="0.01"
-                    value={settings.defaultTaxRate}
-                    onChange={(e) => setSettings({ ...settings, defaultTaxRate: parseFloat(e.target.value) })}
-                    className="input"
+                    min="0"
+                    max="100"
+                    value={formData.defaultTaxRate}
+                    onChange={(e) => setFormData({ ...formData, defaultTaxRate: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="invoicePrefix">Préfixe des factures</Label>
+                  <Input
+                    id="invoicePrefix"
+                    value={formData.invoicePrefix}
+                    onChange={(e) => setFormData({ ...formData, invoicePrefix: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="nextInvoiceNumber">Prochain numéro</Label>
+                  <Input
+                    id="nextInvoiceNumber"
+                    type="number"
+                    min="1"
+                    value={formData.nextInvoiceNumber}
+                    onChange={(e) => setFormData({ ...formData, nextInvoiceNumber: e.target.value })}
                     required
                   />
                 </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div className="flex justify-end gap-3">
-            {saved && (
-              <span className="text-sm text-green-600 flex items-center">
-                Paramètres enregistrés
-              </span>
-            )}
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary"
-            >
-              {loading ? 'Enregistrement...' : 'Enregistrer'}
-            </button>
+          <div className="flex justify-end">
+            <Button type="submit" size="lg" disabled={saving}>
+              <Save className="mr-2 h-4 w-4" />
+              {saving ? 'Enregistrement...' : 'Enregistrer les paramètres'}
+            </Button>
           </div>
         </form>
       </div>
