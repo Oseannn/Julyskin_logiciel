@@ -2,7 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
-import Modal from '@/components/Modal';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Pencil, Package } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function ProductsPage() {
@@ -73,7 +94,6 @@ export default function ProductsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
     if (!formData.categoryId) {
       alert('Veuillez sélectionner une catégorie');
       return;
@@ -112,169 +132,175 @@ export default function ProductsPage() {
   if (loading) {
     return (
       <Layout>
-        <div className="text-sm text-gray-500">Chargement...</div>
+        <div className="text-sm text-muted-foreground">Chargement...</div>
       </Layout>
     );
   }
 
   return (
     <Layout>
-      <div className="space-y-4 md:space-y-6">
+      <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Produits</h2>
-            <p className="text-sm text-gray-600 mt-1">{products.length} produits au total</p>
+            <h2 className="text-3xl font-bold tracking-tight">Produits</h2>
+            <p className="text-muted-foreground mt-1">{products.length} produits au total</p>
           </div>
-          <button onClick={() => openModal()} className="btn-primary w-full sm:w-auto">
+          <Button onClick={() => openModal()} className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" />
             Ajouter un produit
-          </button>
+          </Button>
         </div>
 
-        <div className="card overflow-hidden">
-          <div className="table-wrapper">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Nom</th>
-                  <th>Catégorie</th>
-                  <th>Prix de vente</th>
-                  <th>Stock</th>
-                  <th>Statut</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="text-center text-gray-500 py-8">
-                      Aucun produit
-                    </td>
-                  </tr>
-                ) : (
-                  products.map((product: any) => (
-                    <tr key={product.id} className="hover:bg-gray-50">
-                      <td className="font-medium">{product.name}</td>
-                      <td className="text-gray-600">{product.category?.name || '-'}</td>
-                      <td className="whitespace-nowrap">{product.sellingPrice} FCFA</td>
-                      <td>
-                        <span className={product.stock < 10 ? 'text-red-600 font-medium' : ''}>
-                          {product.stock}
-                        </span>
-                      </td>
-                      <td>
-                        {product.isActive ? (
-                          <span className="badge-success">Actif</span>
-                        ) : (
-                          <span className="badge-error">Inactif</span>
-                        )}
-                      </td>
-                      <td>
-                        <button onClick={() => openModal(product)} className="btn-ghost text-xs">
-                          Modifier
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nom</TableHead>
+                <TableHead>Catégorie</TableHead>
+                <TableHead>Prix de vente</TableHead>
+                <TableHead>Stock</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {products.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <Package className="mx-auto h-12 w-12 text-muted-foreground/50 mb-2" />
+                    <p className="text-muted-foreground">Aucun produit</p>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                products.map((product: any) => (
+                  <TableRow key={product.id}>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{product.category?.name || '-'}</TableCell>
+                    <TableCell className="whitespace-nowrap">{product.sellingPrice} FCFA</TableCell>
+                    <TableCell>
+                      <span className={product.stock < 10 ? 'text-destructive font-medium' : ''}>
+                        {product.stock}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {product.isActive ? (
+                        <Badge variant="success">Actif</Badge>
+                      ) : (
+                        <Badge variant="destructive">Inactif</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openModal(product)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Card>
       </div>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title={editingProduct ? 'Modifier le produit' : 'Nouveau produit'}
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="label">Nom du produit</label>
-            <input
-              id="name"
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="input"
-              required
-            />
-          </div>
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{editingProduct ? 'Modifier le produit' : 'Nouveau produit'}</DialogTitle>
+            <DialogDescription>
+              {editingProduct ? 'Modifiez les informations du produit' : 'Ajoutez un nouveau produit à votre inventaire'}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Nom du produit</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
 
-          <div>
-            <label htmlFor="description" className="label">Description</label>
-            <textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="input"
-              rows={3}
-            />
-          </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Input
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                />
+              </div>
 
-          <div>
-            <label htmlFor="categoryId" className="label">Catégorie</label>
-            <select
-              id="categoryId"
-              value={formData.categoryId}
-              onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-              className="input"
-              required
-            >
-              <option value="">Sélectionner une catégorie</option>
-              {categories.map((cat: any) => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
-          </div>
+              <div className="grid gap-2">
+                <Label htmlFor="categoryId">Catégorie</Label>
+                <select
+                  id="categoryId"
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  required
+                >
+                  <option value="">Sélectionner une catégorie</option>
+                  {categories.map((cat: any) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
 
-          <div>
-            <label htmlFor="sellingPrice" className="label">Prix de vente (FCFA)</label>
-            <input
-              id="sellingPrice"
-              type="number"
-              step="1"
-              value={formData.sellingPrice}
-              onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
-              className="input"
-              required
-            />
-          </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="sellingPrice">Prix de vente (FCFA)</Label>
+                  <Input
+                    id="sellingPrice"
+                    type="number"
+                    step="1"
+                    value={formData.sellingPrice}
+                    onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
+                    required
+                  />
+                </div>
 
-          <div>
-            <label htmlFor="stock" className="label">Stock</label>
-            <input
-              id="stock"
-              type="number"
-              value={formData.stock}
-              onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-              className="input"
-              required
-            />
-          </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="stock">Stock</Label>
+                  <Input
+                    id="stock"
+                    type="number"
+                    value={formData.stock}
+                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
 
-          <div className="flex items-center">
-            <input
-              id="isActive"
-              type="checkbox"
-              checked={formData.isActive}
-              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-              className="h-4 w-4 text-[#B38944] focus:ring-[#B38944] border-gray-300"
-            />
-            <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
-              Produit actif
-            </label>
-          </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  id="isActive"
+                  type="checkbox"
+                  checked={formData.isActive}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="isActive" className="font-normal">
+                  Produit actif
+                </Label>
+              </div>
+            </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <button type="button" onClick={closeModal} className="btn-secondary">
-              Annuler
-            </button>
-            <button type="submit" className="btn-primary">
-              {editingProduct ? 'Modifier' : 'Créer'}
-            </button>
-          </div>
-        </form>
-      </Modal>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={closeModal}>
+                Annuler
+              </Button>
+              <Button type="submit">
+                {editingProduct ? 'Modifier' : 'Créer'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
