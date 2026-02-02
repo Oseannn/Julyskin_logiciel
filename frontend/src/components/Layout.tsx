@@ -84,35 +84,34 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <h1 className="text-xl font-bold text-primary">Julyskin</h1>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* Spacer to push user info to bottom */}
-            <div className="flex-shrink-0" />
+            {/* Navigation - scrollable area */}
+            <div className="flex-1 overflow-y-auto">
+              <nav className="space-y-1 p-4">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
 
             {/* User Info - Fixed at bottom */}
-            <div className="border-t p-4 mt-auto">
+            <div className="flex-shrink-0 border-t p-4">
               {user && (
                 <div className="mb-3 rounded-lg bg-muted p-3">
                   <p className="text-sm font-medium">
